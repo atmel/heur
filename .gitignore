@@ -1,0 +1,16 @@
+# generated dirs
+CMakeFiles/
+bin/
+
+# generated files
+cmake_*
+CMakeCache.txt
+Makefile
+
+# ignore all cuda-generated files in progs/
+progs/*
+progs/*.cpp*
+!progs/*.cpp
+!progs/CMakeLists.txt
+progs/*.cu*
+!progs/*.cu
