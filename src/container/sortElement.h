@@ -7,8 +7,8 @@ struct indexElement{
 	evalType fit;
 	int ind;
 
-	bool operator<(const indexElement<evalType> &lhs, const indexElement<evalType> &rhs){
-		return lhs.fit < rhs.fit;
+	bool operator<(const indexElement<evalType> &rhs){
+		return this->fit < rhs.fit;
 	}
 };
 

@@ -16,14 +16,14 @@ __global__ void MoveKernelCandidatePerThread(popContainer pop, range rng, int *g
 	int id = threadIdx.x;
 	//load to shared
 	for(int i=0; i<pop.GetDim();i++){
-		components[i*blockDim.x + id] = pop.RangeComponent(blockIdx.x, gInd[id], i);
+		dynamic[i*blockDim.x + id] = pop.RangeComponent(blockIdx.x, gInd[id], i);
 	}
 	evalType fitness = pop.RangeFitness(blockIdx.x, gInd[id]);
 	__syncthreads();
 
 	//copy to destination
 	for(int i=0; i<pop.GetDim();i++){
-		pop.RangeComponent(blockIdx.x, rng.lo + id, i) = components[i*blockDim.x + id];
+		pop.RangeComponent(blockIdx.x, rng.lo + id, i) = dynamic[i*blockDim.x + id];
 	}
 	pop.RangeFitness(blockIdx.x, rng.lo + id) = fitness;
 }
@@ -43,7 +43,7 @@ __global__ void MoveKernelComponentPerThread(popContainer pop, range rng, int *g
 	__syncthreads();
 
 	//copy to destination
-	pop.RangeComponent(blockIdx.x, rng.lo + cand, comp) = dynamic[com*blockDim.x + cand];
+	pop.RangeComponent(blockIdx.x, rng.lo + cand, comp) = dynamic[comp*blockDim.x + cand];
 	__syncthreads();
 
 	//copy fitness:
@@ -73,22 +73,23 @@ public:
 		sortResourceProvider *srp = dynamic_cast<sortResourceProvider*>(p);
 		if(srp == NULL) EXIT0("moveToRangeMethod: resource provider cast unsuccessfull")
 		indices = srp->GetIndexArray();
+		return 1;
 	}
 
 	int Perform(){
 	#if USE_CUDA
-		int memSize = ALLIGN64(this->workingRange.length * this->pop->GetDim() * sizeof(vectorType));
+		int memSize = ALLIGN_64(this->workingRange.length * this->pop->GetDim() * sizeof(vectorType));
 
 		if(this->workingRange.length * this->pop->GetDim() > MAX_THREADS_PER_BLOCK){
 			int threads = this->workingRange.length; 
-			CUDA_CALL("Candidate move kernel", MoveKernelCandidatePerThread<popContainer, vectorType, evalType>
+			CUDA_CALL("Candidate move kernel", (MoveKernelCandidatePerThread<popContainer, vectorType, evalType>
 				<<<this->pop->GetPopsPerKernel(), threads, memSize>>>
-				(*(this->pop), this->workingRange, indices))
+				(*(this->pop), this->workingRange, indices)))
 		}else{
 			int threads = this->workingRange.length * this->pop->GetDim(); 
-			CUDA_CALL("Component move kernel", MoveKernelComponentPerThread<popContainer, vectorType, evalType>
+			CUDA_CALL("Component move kernel", (MoveKernelComponentPerThread<popContainer, vectorType, evalType>
 				<<<this->pop->GetPopsPerKernel(), threads, memSize>>>
-				(*(this->pop), this->workingRange, indices))
+				(*(this->pop), this->workingRange, indices)))
 		}
 	#else
 

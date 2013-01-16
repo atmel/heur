@@ -14,7 +14,7 @@ __global__ void cudaRandomSetupKernel(curandState *state, int seed){
 	int id = threadIdx .x + blockIdx.x * blockDim.x;
 	/* Each thread gets same seed , a different sequence
 		number , no offset */
-	curand_init (seed + id , id , 0, state + id);
+	curand_init (seed + id , 0 , 0, state + id);
 }
 
 //wrapper that can be called from other files :/ plus allocation
@@ -77,10 +77,12 @@ void SetupRandomGeneration(curandState_t **state, int seed, int threads, int blo
 #endif
 }
 
+#if USE_CUDA
 //deallocate
 void cudaRandomFinalize(curandState_t *state){
 	cudaFree(state);
 }
+#endif
 
 
 inline int rand_cauchyInt(int scale){

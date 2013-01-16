@@ -30,7 +30,7 @@ public:
 		#if USE_CUDA
 			CUDA_CALL("Merging Malloc",cudaMalloc(&indices, sizeof(int) * this->pop->GetPopSize() * this->pop->GetPopsPerKernel()))
 		#else
-			indices = new intp[this->pop->GetPopSize()* this->pop->GetPopsPerKernel()];
+			indices = new int[this->pop->GetPopSize()* this->pop->GetPopsPerKernel()];
 		#endif
 
 		//init sorting with appropriate ranges
@@ -38,11 +38,12 @@ public:
 		//wRange = makeRange(this->pop->GetPopSize(), 2*this->pop->GetPopSize());
 		//DEBUG:
 		fRange = wRange = this->pop->GetPopRange();
-		if(! methods[0]->Init(this)) EXIT0("Merging Init: sort submethod init unsuccessfull")
+		if(! this->methods[0]->Init(this)) EXIT0("Merging Init: sort submethod init unsuccessfull")
 
 		//init moving (only wRange needed)
 		wRange = this->pop->GetPopRange();
-		if(! methods[1]->Init(this)) EXIT0("Merging Init: move submethod init unsuccessfull")
+		if(! this->methods[1]->Init(this)) EXIT0("Merging Init: move submethod init unsuccessfull")
+		return 1;
 	}
 
 	//propper deallocation
@@ -55,9 +56,10 @@ public:
 	}
 
 	//override virtual method
-	int* GetIndexArray(){return inidices;}
+	int* GetIndexArray(){return indices;}
 	//theese are changing in Init
 	range GetWorkingRange(){return wRange;}
 	range GetFullRange(){return fRange;}
 
+};
 #endif

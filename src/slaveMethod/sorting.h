@@ -10,7 +10,7 @@
 #define DIV22(X,D) (((X) | (~((D)-1)))*2)
 //compare and swap items in fit, ind with these indexes
 #define CMP_SWAP(X,Y) {\
-	evalType ftmp; int itmp;\ 
+	evalType ftmp; int itmp;\
 	if(fit[(X)] > fit[(Y)]){\
 		ftmp = fit[(X)]; fit[(X)] = fit[(Y)]; fit[(Y)] = ftmp;\
 		itmp = ind[(X)]; ind[(X)] = ind[(Y)]; ind[(Y)] = itmp;\
@@ -100,16 +100,17 @@ public:
 		indices = srp->GetIndexArray();
 		#if USE_CUDA
 			//DEBUG:
-			D("Sorting: length of indices: %d",sizeof(indices)/sizeof(int) );
+			D("Sorting: length of indices: %d",(int)(sizeof(indices)/sizeof(int)) );
 			cudaMalloc(&fitnesses,sizeof(evalType)*sizeof(indices)/sizeof(int));
 		#else
 			//allocate internal array
 			els = new indexElement<evalType>[this->fullRange.lenght];
 		#endif
+		return 1;
 	}
 
 	//dealocate array
-	~rangedSorting<popContainer,evalType>{
+	~rangedSorting<popContainer,evalType>(){
 		//DEBUG
 		cudaFree(fitnesses);
 
@@ -121,15 +122,15 @@ public:
 	int Perform(){
 	#if USE_CUDA
 		int threads = this->fullRange.length/2;
-		D("size of indexElement<evalType> is: %d",sizeof(indexElement<evalType>))
-		CUDA_CALL("Sorting Kernel",FullBitonicSortKernel<popContainer, evalType>
+		D("size of indexElement<evalType> is: %d",(int)sizeof(indexElement<evalType>))
+		CUDA_CALL("Sorting Kernel",(FullBitonicSortKernel<popContainer, evalType>
 			<<<this->pop->GetPopsPerKernel(),threads, ALLIGN_64((threads*2)*sizeof(evalType))+ALLIGN_64((threads*2)*sizeof(int))>>>
-			(*(this->pop), this->workingRange.lo, indices, this->workingRange.length, fitnesses))
+			(*(this->pop), this->workingRange.lo, indices, this->workingRange.length, fitnesses)))
 
 		//DEBUG:
 		D("Sorting: printing fitnesses")
-		evalType fitToPrint = new evalType[sizeof(fitnesses)/sizeof(evalType)];
-		CUDA_CALL("Sorting Memcpy",cudaMemcpy(fitToPrint, fitnesses, sizeof(fitnesses), cudaMemcpyDeviceToHost))
+		evalType *fitToPrint = new evalType[sizeof(fitnesses)/sizeof(evalType)];
+		CUDA_CALL("Sorting Memcpy",(cudaMemcpy(fitToPrint, fitnesses, sizeof(fitnesses), cudaMemcpyDeviceToHost)))
 		for(int i = 0; i< this->workingRange.length*this->pop->GetPopsPerKernel();i++){
 			std::cout << fitToPrint[i] << ", ";
 		}
@@ -147,6 +148,7 @@ public:
 			indices[i] = els[i].ind;
 		}
 	#endif
+	return 1;
 	}
 };
 

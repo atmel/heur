@@ -35,6 +35,7 @@ public:
 
 //size of array is provided via workingRange
 class sortResourceProvider : public virtual generalInfoProvider{
+public:
 	virtual int* GetIndexArray() = 0;
 };
 #endif

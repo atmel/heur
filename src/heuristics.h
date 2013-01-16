@@ -24,16 +24,23 @@
 //pop include
 //#include "candidate.h"
 #include "candidateContainer.h"
-#include "archive.h"
+#include "archiveContainer.h"
 #include "population.h"
+//#include "sortElement.h"
 
 //#include"/stage/initializable.h"
+
+//slaves
+
+//#include "sorting.h"
+//#include "move.h"
 
 //stages
 #include "evaluation.h"
 #include "initialization.h"
 #include "pertubation.h"
 #include "archivationMethod.h"
+//#include "merging.h"
 
 //#include "merge.h"
 //#include "mutation.h"

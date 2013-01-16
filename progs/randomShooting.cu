@@ -1,4 +1,5 @@
 #include "heuristics.h"
+#include <iostream>
 
 #define DIM 2
 
@@ -24,20 +25,20 @@ int main(void){
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
 							->Add(new periodicPertubation<RScandCont>())
 							->Add(new sphericFunction<RScandCont>())
-							->Add(new replaceMerging())
+	//						->Add(new replaceMerging<RScandCont,int,int>())
 						);
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
 						);
-	cout << "initializing\n";
+	std::cout << "initializing\n";
 	if(!RSpop->Init()){ 
-	  cout << "init UNsuccessfull\n";
+	  std::cout << "init UNsuccessfull\n";
 	  return 0;
 	}
 	for(int i=0;i<100;i++){
-	  cout << i << "-th generation\n";
+	  std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
-		cout << "Error during Next Generation\n";
+		std::cout << "Error during Next Generation\n";
 		return 0;
 	  }
 	}
