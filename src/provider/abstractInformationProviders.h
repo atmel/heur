@@ -33,4 +33,8 @@ public:
 	virtual int GetMatingPoolSize() = 0;
 };
 
+//size of array is provided via workingRange
+class sortResourceProvider : public virtual generalInfoProvider{
+	virtual int* GetIndexArray() = 0;
+};
 #endif

@@ -10,7 +10,10 @@ class composedMethod : public abstractGeneralMethod<popContainer>, public popula
 	std::vector< abstractGeneralMethod<popContainer>* > methods;
 
 	public:
-	//
+	composedMethod<popContainer>(){
+		methods.clear();
+	}
+
 	virtual int Init(generalInfoProvider *p){
 		//methods.clear(); NO, they are registered during construction!!
 		//this obejct must be initialized first (submethods will need it's pop and so on)

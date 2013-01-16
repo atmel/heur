@@ -64,7 +64,7 @@ __global__ void UpdateBestCandFitKernel(popContainer pop, archive arch, const in
 
 	int id = threadIdx.x;
 	//due to prescribed number of threads run exactly 2 times
-	//#pragma unroll
+	#pragma unroll 2
 	for(int i=0; i < 2; i++, id += blockDim.x){
 		bool first;
 		if(id+lowerPow2size+rng.lo >= rng.hi){ // copy, no pair
