@@ -34,10 +34,10 @@ public:
 		#endif
 
 		//init sorting with appropriate ranges
-		//fRange = this->pop->GetOffsprRange();
-		//wRange = makeRange(this->pop->GetPopSize(), 2*this->pop->GetPopSize());
+		fRange = this->pop->GetOffsprRange();
+		wRange = makeRange(this->pop->GetPopSize(), 2*this->pop->GetPopSize());
 		//DEBUG:
-		fRange = wRange = this->pop->GetPopRange();
+		//fRange = wRange = this->pop->GetPopRange();
 		if(! this->methods[0]->Init(this)) EXIT0("Merging Init: sort submethod init unsuccessfull")
 
 		//init moving (only wRange needed)

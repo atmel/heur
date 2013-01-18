@@ -7,7 +7,7 @@
 /*bitonic sorter*/
 
 #define MOD2(X,M) ((X) & ((M)-1))
-#define DIV22(X,D) (((X) | (~((D)-1)))*2)
+#define DIV22(X,D) (((X) & (~((D)-1)))*2) //(((X) | (~((D)-1)))*2)
 //compare and swap items in fit, ind with these indexes
 #define CMP_SWAP(X,Y) {\
 	evalType ftmp; int itmp;\
@@ -66,10 +66,10 @@ __global__ void FullBitonicSortKernel(popContainer pop, int rngLo, int *gInd, in
 	#pragma unroll 2
 	//max 2 times (do not use REQUIRED_RUNS)
 	for(int i=0; i<2; i++, id += blockDim.x){
-		if(id >= resLength) return; //complete - copy only working range
-		gInd[id + blockIdx.x*resLength] = ind[id];
-		//DEBUG:
-		gFit[id + blockIdx.x*resLength] = fit[id];
+		if(id < resLength){  //complete - copy only working range
+			gInd[id + blockIdx.x*resLength] = ind[id];
+			gFit[id + blockIdx.x*resLength] = fit[id];
+		}
 	}
 }
 #endif
@@ -98,13 +98,15 @@ public:
 		if(srp == NULL) EXIT0("RangedSorting method: resource provider cast unsuccessfull")
 		//els = srp->GetIndexStorage();
 		indices = srp->GetIndexArray();
+		
 		#if USE_CUDA
 			//DEBUG:
-			D("Sorting: length of indices: %d",(int)(sizeof(indices)/sizeof(int)) );
-			cudaMalloc(&fitnesses,sizeof(evalType)*sizeof(indices)/sizeof(int));
+			D("Sorting: length of indices: %d",this->pop->GetPopsPerKernel()*this->workingRange.length );
+			cudaMalloc(&fitnesses,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
+			cudaMemset(fitnesses,0,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
 		#else
 			//allocate internal array
-			els = new indexElement<evalType>[this->fullRange.lenght];
+			els = new indexElement<evalType>[this->fullRange.length];
 		#endif
 		return 1;
 	}
@@ -122,15 +124,18 @@ public:
 	int Perform(){
 	#if USE_CUDA
 		int threads = this->fullRange.length/2;
-		D("size of indexElement<evalType> is: %d",(int)sizeof(indexElement<evalType>))
+		//D("size of indexElement<evalType> is: %d",(int)sizeof(indexElement<evalType>))
 		CUDA_CALL("Sorting Kernel",(FullBitonicSortKernel<popContainer, evalType>
 			<<<this->pop->GetPopsPerKernel(),threads, ALLIGN_64((threads*2)*sizeof(evalType))+ALLIGN_64((threads*2)*sizeof(int))>>>
 			(*(this->pop), this->workingRange.lo, indices, this->workingRange.length, fitnesses)))
 
 		//DEBUG:
+		//D("Error?: %s",cudaGetErrorString(cudaGetLastError()))
 		D("Sorting: printing fitnesses")
-		evalType *fitToPrint = new evalType[sizeof(fitnesses)/sizeof(evalType)];
-		CUDA_CALL("Sorting Memcpy",(cudaMemcpy(fitToPrint, fitnesses, sizeof(fitnesses), cudaMemcpyDeviceToHost)))
+		evalType *fitToPrint = new evalType[this->pop->GetPopsPerKernel()*this->workingRange.length];
+		CUDA_CALL("Sorting Memcpy",(cudaMemcpy(fitToPrint, fitnesses, this->pop->GetPopsPerKernel()*this->workingRange.length * sizeof(evalType), 
+		  cudaMemcpyDeviceToHost)))
+		
 		for(int i = 0; i< this->workingRange.length*this->pop->GetPopsPerKernel();i++){
 			std::cout << fitToPrint[i] << ", ";
 		}
@@ -141,7 +146,7 @@ public:
 			els[i].ind = i + this->fullRange.lo;
 		}
 		//partially sort
-		std::partial_sort(els,els + this->workingRange.length, els + this->fullRange.lenght);
+		std::partial_sort(els, els + this->workingRange.length, els + this->fullRange.length);
 
 		//save for later use
 		for(int i=0; i<this->workingRange.length; i++){

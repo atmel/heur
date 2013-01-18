@@ -8,8 +8,8 @@ typedef basicArchive<int,int> RSbasArch;
 
 int main(void){
 
-	RScandCont *cc = new RScandCont(DIM,1000,0,5);
-	RSbasArch *ac = new RSbasArch(DIM,1000,5);
+	RScandCont *cc = new RScandCont(DIM,16,0,3);
+	RSbasArch *ac = new RSbasArch(DIM,1000,3);
 	int lo[]={-10000,-10000}, hi[] = {10000,10000};
 	cc->SetLimits(lo,hi);
 	//new population
@@ -25,8 +25,8 @@ int main(void){
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
 							->Add(new periodicPertubation<RScandCont>())
 							->Add(new sphericFunction<RScandCont>())
-	//						->Add(new replaceMerging<RScandCont,int,int>())
-						);
+							->Add(new replaceMerging<RScandCont,int,int>())
+							);
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
 						);
@@ -35,7 +35,7 @@ int main(void){
 	  std::cout << "init UNsuccessfull\n";
 	  return 0;
 	}
-	for(int i=0;i<100;i++){
+	for(int i=0;i<1;i++){
 	  std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
 		std::cout << "Error during Next Generation\n";
