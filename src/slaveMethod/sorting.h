@@ -6,8 +6,8 @@
 #include <iostream>
 /*bitonic sorter*/
 
-#define MOD2(X,M) ((X) & ((M)-1))
-#define DIV22(X,D) (((X) & (~((D)-1)))*2) //(((X) | (~((D)-1)))*2)
+#define MOD2(X,M) ((X) & ((M)-1))	//low bits, M is power of 2
+#define DIV22(X,D) (((X) & (~((D)-1)))*2) // shifted high bits, D is power of 2
 //compare and swap items in fit, ind with these indexes
 #define CMP_SWAP(X,Y) {\
 	evalType ftmp; int itmp;\
@@ -84,7 +84,7 @@ class rangedSorting : public slaveMethod<popContainer>{
 	//retrieved from master (for GPU result)
 	int *indices;
 	//DEBUG:
-	evalType *fitnesses;
+	//evalType *fitnesses;
 
 	//for local sorting
 	indexElement<evalType> *els;
@@ -101,9 +101,9 @@ public:
 		
 		#if USE_CUDA
 			//DEBUG:
-			D("Sorting: length of indices: %d",this->pop->GetPopsPerKernel()*this->workingRange.length );
-			cudaMalloc(&fitnesses,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
-			cudaMemset(fitnesses,0,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
+			//D("Sorting: length of indices: %d",this->pop->GetPopsPerKernel()*this->workingRange.length );
+			//cudaMalloc(&fitnesses,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
+			//cudaMemset(fitnesses,0,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
 		#else
 			//allocate internal array
 			els = new indexElement<evalType>[this->fullRange.length];
@@ -114,7 +114,7 @@ public:
 	//dealocate array
 	~rangedSorting<popContainer,evalType>(){
 		//DEBUG
-		cudaFree(fitnesses);
+		//cudaFree(fitnesses);
 
 		#if !USE_CUDA
 			if(els != 0) delete [] els;
@@ -131,14 +131,14 @@ public:
 
 		//DEBUG:
 		//D("Error?: %s",cudaGetErrorString(cudaGetLastError()))
-		D("Sorting: printing fitnesses")
+		/*D("Sorting: printing fitnesses")
 		evalType *fitToPrint = new evalType[this->pop->GetPopsPerKernel()*this->workingRange.length];
 		CUDA_CALL("Sorting Memcpy",(cudaMemcpy(fitToPrint, fitnesses, this->pop->GetPopsPerKernel()*this->workingRange.length * sizeof(evalType), 
 		  cudaMemcpyDeviceToHost)))
 		
 		for(int i = 0; i< this->workingRange.length*this->pop->GetPopsPerKernel();i++){
 			std::cout << fitToPrint[i] << ", ";
-		}
+		}*/
 	#else
 		//fill structure
 		for(int i = 0; i < this->fullRange.length; i++){

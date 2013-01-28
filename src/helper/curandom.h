@@ -24,10 +24,10 @@ inline void cudaRandomAllocateAndSetup(curandState **state, int seed, int thread
 }
 
 
-inline __device__ int2 curand_normal2int(curandState *state, int sigma){
-	float2 tmp = curand_normal2(state);
-	return make_int2(rintf(tmp.x*sigma),rintf(tmp.y*sigma));
-}
+//inline __device__ int2 curand_normal2int(curandState *state, int sigma){
+//	float2 tmp = curand_normal2(state);
+//	return make_int2(rintf(tmp.x*sigma),rintf(tmp.y*sigma));
+//}
 
 inline __device__ int curand_cauchyInt(curandState *state, int scale){
 #define PI 3.1415926535897932f
@@ -44,7 +44,6 @@ inline __device__ int curand_cauchyInt(curandState *state, int scale){
 namespace hrand{
 
 typedef struct _int2 int2;
-
 struct _int2{
 	int x,y;
 
@@ -56,14 +55,26 @@ struct _int2{
 	}
 };
 
-//this expects srand(..) was called before, performs standard Box-Muller transform, result converted into int (considered at least 32bit)
-int2 rand_normal2(const int sigma){
+typedef struct _float2 float2;
+struct _float2{
+	float x,y;
+
+	_float2(const float _x, const float _y):x(_x),y(_y){}
+	inline _float2 &operator=(const float2 &rval){
+		x=rval.x;
+		y=rval.y;
+		return *this;
+	}
+};
+
+//this expects srand(..) was called before, performs standard Box-Muller transform
+inline float2 rand_normal2(){
 #define PI 3.1415926535897932f
 	//get x from (0,1] independent on implementation (consider RAND_MAX = 32767 = 0x7FFF)
 	float x = ((rand() & 0x7FFF) + 1)/(0x7FFF + 1); // i.e. from (0,1]
-	float R = sqrt(-2*log(x))*sigma;
+	float R = sqrt(-2*log(x));
 	float theta = 2*PI*(rand() & 0x7FFF)/(0x7FFF + 1); // i.e. from [0,2pi)
-	return int2(R*sin(theta),R*cos(theta));
+	return float2(R*sin(theta),R*cos(theta));
 #undef PI
 }
 

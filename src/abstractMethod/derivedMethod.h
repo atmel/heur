@@ -82,17 +82,5 @@ class masterMethod : public composedMethod<popContainer>, public rangeProvider {
 
 
 //-----------------------------------------------------------------------------------------------------------------
-template<class popContainer>
-class rangedMasterMethod : public masterMethod<popContainer>, public rangedMethod {
-	public:
-	virtual int Init(generalInfoProvider *p){
-		//range must be set first
-		if(!rangedMethod::Init(p)) return 0;
-		if(!masterMethod<popContainer>::Init(p)) return 0;
-		return 1;
-	}
-	virtual range GetWorkingRange() = 0;
-	virtual range GetFullRange() = 0;
-};
 
 #endif

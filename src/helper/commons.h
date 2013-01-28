@@ -15,7 +15,11 @@
 //to compute number of required repetitions within kernel to process all data in pop/offspr/mate...
 #define REQUIRED_RUNS(SET_SIZE) ((((SET_SIZE)-1)/blockDim.x)+1)
 
+//allign to 64bit when acessing shared mem.
 #define ALLIGN_64(SIZE) (((SIZE)/8 + 1)*8)
+
+//allign thread count to number of warps needed, usage: if(tId/32 < WARP_ALLIGN(X))
+#define WARP_ALLIGN(CNT) (((CNT)-1)/32+1)
 
 #else
 #endif

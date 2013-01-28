@@ -15,7 +15,7 @@ __global__ void PseudouniformRandomInitializationKernel(popContainer pop, curand
 	curandState localState = state[stableId]; //load generator state
 
 	for(int i=0; i < REQUIRED_RUNS(rng.length); i++, id += blockDim.x){
-		if(id >= rng.hi){  //complete
+		if(id >= rng.hi){  //threads that are over save state here
 			state[stableId]=localState;
 			return;
 		}
@@ -25,7 +25,7 @@ __global__ void PseudouniformRandomInitializationKernel(popContainer pop, curand
 					+ pop.GetLowerLimit(j);
 		}
 	}
-	//save those who did not already..
+	//threads from the last run save state here
 	state[stableId]=localState;
 }
 #endif

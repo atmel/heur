@@ -4,7 +4,7 @@
 #include "heuristics.h"
 
 
-/*
+/* ===================================================================================================================
 	This method performs merging by replacement:
 	old population is replaced with |P| best candidates from offspring
 */
@@ -23,9 +23,9 @@ public:
 	}
 
 	int Init(generalInfoProvider *p){
-		//init population
+		//init population, composed method init is done manually
 		if(!abstractGeneralMethod<popContainer>::Init(p)) EXIT0("Merging Init: general method init unsuccessfull")
-		
+
 		//create index array:
 		#if USE_CUDA
 			CUDA_CALL("Merging Malloc",cudaMalloc(&indices, sizeof(int) * this->pop->GetPopSize() * this->pop->GetPopsPerKernel()))

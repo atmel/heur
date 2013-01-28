@@ -2,57 +2,70 @@
 #define __VYZKUM_REPRODUCTION__
 
 #include "heuristics.h"
-#include<stdlib.h>
-#include<time.h>
 #include<algorithm>
 
-template<class popContainer, int mateSize>
-class reproductionMethod{
+/*
+	Works on population-offspring logic, sets the right ranges for slave selection and crossover.
+	Expects methods[0] be selection and method[1] crossover added after construction
+*/
+template<class popContainer>
+class reproductionMethod: public masterMethod<popContainer>, public mateProvider{
 	protected:
-	//initialized in constructor
-	popContainer &pop;
 	int *mate;
+	const float crossProb;
+	int mateSize, crossFrac;	//how many will be crossovered based on crossProb
+	range wRange, fRange;
 
 	public:
-	virtual int PerformReproduction() = 0;
-	virtual int Init(const basicPopulation<popContainer> &p){
-		pop = p.GetPopulationContainer();
-		//through the mating pool can be unnecesary for some types of reproduction
+	//init crossProb in constructor
+	reproductionMethod<popContainer>(float crossProbability):crossProb(crossProbability){};
+	int Init(generalInfoProvider *p){
+		//init population
+		if(!abstractGeneralMethod<popContainer>::Init(p)) EXIT0("Merging Init: general method init unsuccessfull")
+		
+		//check two methods present
+		if(this->methods.size() != 2) EXIT0("Reproduction: does not contain exactly 2 submethods")
+		
+			//determine mateSize
+		arityProvider* ap = dynamic_cast<arityProvider*>(method[1]);
+		if(ar == NULL) EXIT0("Reproduction: crossover (method[1]) to arityProvider cast unsuccesfull")
+		crossFrac = this->pop->GetOffsprSize()*crossProb;
+		mateSize = (this->pop->GetOffsprSize() - crossFrac) + crossFrac*ap->GetArity();
+
+		D("Reproduction init: mateSize is: %d", mateSize)
+		//alloc mate
 		#if USE_CUDA
-			cudaMalloc(&mate,sizeof(int)*mateSize*pop.GetPopsPerKernel());
+			CUDA_CALL("reproduction Malloc",cudaMalloc(&mate, sizeof(int) * mateSize * this->pop->GetPopsPerKernel()))
 		#else
 			mate = new int[mateSize];
 		#endif
+
+		//init selection with appropriate ranges
+		wRange = fRange = this->pop->GetPopRange();
+		if(! this->methods[0]->Init(this)) EXIT0("Reproduction Init: selection submethod init unsuccessfull")
+
+		//init reproduction
+		fRange = this->pop->GetOffsprRange();
+		wRange = makeRange(fRange.lo, fRange.lo + crossFrac);
+		if(! this->methods[1]->Init(this)) EXIT0("Reproduction Init: crossover submethod init unsuccessfull")
 		return 1;
 	}
 
-	virtual int Finalize(){
+	~reproductionMethod<popContainer>(){
 		#if USE_CUDA
 			cudaFree(mate);
 		#else
 			delete [] mate;
 		#endif
 	}
-};
 
-
-/* Fill offspring with population copy.
-	popSize == offsprSize is expected
-*/
-template<class popContainer>
-class plainCopyReproduction : public reproductionMethod<popContainer,0>{
+	//override virtual method
+	int* GetMatingPool(){return mate;}
+	int GetMatingPoolSize(){return mateSize;}
+	//theese are beeing changed in Init
+	range GetWorkingRange(){return wRange;}
+	range GetFullRange(){return fRange;}
 	
-	public:
-	int PerformReproduction(){
-#if USE_CUDA
-		cudaMemcpy(pop.GetOffsprComponentArray(),pop.GetPopComponentArray(),
-			pop.GetVectorTypeSize()*pop.GetPopSize()*pop.GetDim(), cudaMemcpyDeviceToDevice);
-#else
-		memcpy(pop.GetOffsprComponentArray(),pop.GetPopComponentArray(),
-			pop.GetVectorTypeSize()*pop.GetPopSize()*pop.GetDim());
-#endif
-		return 1;
-	}
 };
 
 //-----------------------BIA repro-----------------------------

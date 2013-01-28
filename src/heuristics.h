@@ -8,11 +8,12 @@
 //whole program definitions
 #define GRID_STEP 0.0001
 
-//error definitions
+//helper part
 #include "commons.h"
 #include "errors.h"
 #include "curandom.h"
 #include "range.h"
+#include "rounding.h"
 
 //build options
 
@@ -41,9 +42,13 @@
 #include "pertubation.h"
 #include "archivationMethod.h"
 #include "merging.h"
+#include "reproduction.h"
+#include "selection.h"
+#include "crossover.h"
+#include "mutation.h"
+#include "gaussianMutation.h"
 
 //#include "merge.h"
-//#include "mutation.h"
 //#include "selection.h"
 //#include "reproduction.h"
 

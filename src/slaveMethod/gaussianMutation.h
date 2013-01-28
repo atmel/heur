@@ -2,66 +2,24 @@
 #define __VYZKUM_MUTATION__
 
 #include "heuristics.h"
-#include<cstdlib>
-#include<time.h>
-#include<math.h>
-
-//using namespace std;
-
-template<class popContainer>
-class mutationMethod{
-	protected:
-	//reference initialized in constructor
-	popContainer &pop;
-
-	public:
-	virtual int PerformMutation() = 0;
-	virtual int Init(const basicPopulation<popContainer> &p){
-		pop = p.GetPopulationContainer();
-		return 1;
-	}
-	virtual int Finalize(){};
-};
-
-//Takes care of random initialization, in case of GPU even care of devStates allocation, initialization and cleanup!
-template<class popContainer>
-class stochasticMutationMethod : public mutationMethod<popContainer>{
-	protected:
-	curandState *devStates;
-
-	public:
-	virtual int PerformMutation() = 0;
-	virtual int Init(const basicPopulation<popContainer> &p){
-		mutationMethod<popContainer>::Init(p);
-		//allocates space for max(MAX THREADS, <choose the right size for the object>) states
-		const int characteristicSize = p.GetOffsprSize();
-		hrand::SetupRandomGeneration(devStates,time(NULL),std::min(MAX_THREADS_PER_BLOCK,characteristicSize),p.GetPopsPerKernel());
-		return 1;
-	}
-	virtual int Finalize(){
-#if USE_CUDA
-		cudaRandomFinalize(devStates);
-#endif
-	};
-};
 
 //=============================================================================================================================
 
 #if USE_CUDA
-/* This kernel does the gaussian mutation in the same fashion as CPU and each thread processes single candidate.
-	As generating offspring is stochastic process and candidates are independent random variables, we need 
-	not introduce another randomness and we just process first n candidates, where n is fraction corresponding to mut. rate
+/* 
+
 */
-__global__ void GaussianNoiseKernel<class popContainer, int sigma>(popContainer pop, curandState *state, int count, int begin=0){
-	int id = threadIdx.x + begin; //apply shift in case of multiple mutations?
+template<class popContainer, class round>
+__global__ void GaussianNoiseKernel(popContainer pop, curandState *state, range rng, float sigma2){
+	int id = threadIdx.x + rng.lo;
 	const int stableId = threadIdx .x + blockIdx .x * blockDim.x; //for accessing curand states
 	curandState localState;
-	int2 rnd;
+	float2 rnd;
 	localState = state[stableId]; //load generator state
 
-	//proces candidates [begin,begin+count)
-	for(int i=0; i < REQUIRED_RUNS(count); i++, id += blockDim.x){
-		if(id >= begin+count){ //complete
+	//proces candidates
+	for(int i=0; i < REQUIRED_RUNS(rng.length); i++, id += blockDim.x){
+		if(id >= rng.hi){ //complete
 			state[stableId]=localState; //save state
 			return;
 		}
@@ -69,87 +27,54 @@ __global__ void GaussianNoiseKernel<class popContainer, int sigma>(popContainer 
 		//process even number of dimensions
 		#pragma unroll
 		for(int j=0; j < pop.GetDim()-1; j+=2){
-			rnd = curand_normal2int(&localState,sigma);
-			pop.OffsprComponent(blockIdx.x,id,j) += rnd.x;
-			pop.OffsprComponent(blockIdx.x,id,j+1) += rnd.y;
+			rnd = curand_normal2(&localState);
+			pop.RangeComponent(blockIdx.x,id,j) += round::round(rnd.x*sigma2, &localState);
+			pop.RangeComponent(blockIdx.x,id,j+1) += round::round(rnd.y*sigma2, &localState);
 		}
 		//proces last odd component if any
 		if(pop.GetDim()%2){
 			//form stack object... ok?
-			pop.OffsprComponent(blockIdx.x,id,pop.GetDim()-1) += curand_normal2int(&localState,sigma).x;
-		}
-		//__syncthreads();
-	}
-}
-
-//specialized for 100% mutation rate
-__global__ void CauchyanNoiseKernel<class popContainer, int scale>(popContainer pop, curandState *state, int count, int begin=0){
-	int id = threadIdx.x + begin; //apply shift in case of multiple mutations?
-	const int stableId = threadIdx .x + blockIdx .x * blockDim.x; //for accessing curand states
-	curandState localState;
-	localState = state[stableId]; //load generator state
-
-	//proces candidates [begin,begin+count)
-	for(int i=0; i < REQUIRED_RUNS(count); i++, id += blockDim.x){
-		if(id >= begin+count){ //complete
-			state[stableId]=localState; //save state
-			return;
-		}
-		#pragma unroll
-		for(int j=0; j < pop.GetDim(); j++){
-			pop.OffsprComponent(blockIdx.x,id,j) += curand_cauchyInt(&localState,scale);
+			pop.RangeComponent(blockIdx.x,id,pop.GetDim()-1) += round::round(curand_normal2(&localState).x*sigma2, &localState);
 		}
 	}
 }
 
 #endif
 
-template<class popContainer, int sigma, int rate>
-class gaussianNoise: public stochasticMutationMethod<popContainer>{
-	using this->pop;
-	using this->devStates;
-
+template<class popContainer, class round>
+class gaussianNoiseMutation: public slaveMethod<popContainer>, public stochasticMethod{
+	int threadCount;
+	const float sigma2;
 public:
-	int PerformMutation(){
-		const int count = (pop.GetOffsprSize()*100)/rate;
-#if USE_GPU
-		GaussianNoiseKernel<popContainer,sigma>
-			<<<pop.GetPopsPerKernel() , std::min(MAX_THREADS_PER_BLOCK,count)>>>(pop,devStates,count);
-#else
-		hrand::int2 rnd;
-		for(int id = 0; id < count; id++){
+	gaussianNoiseMutation(float variance):sigma2(variange){};
+
+	int Init(generalInfoProvider *p){
+		//init slave
+		if(!slaveMethod<popContainer>::Init(p)) EXIT0("gausian mutation slave Method: slave init unsuccessfull")
+		threadCount = std::min(MAX_THREADS_PER_BLOCK,this->workingRange.length);
+		if(!stochasticMethod::Init(threadCount,this->pop->GetPopsPerKernel())) EXIT0("gausian mutation slave Method: stochastic method init unsuccessfull")
+		return 1;
+	}
+
+	int Perform(){
+	#if USE_GPU
+		CUDA_CALL("gauss mut kernel",(GaussianNoiseKernel <popContainer,round> <<<this->pop->GetPopsPerKernel(), threadCount>>>
+			(*(this->pop),this->devStates,this->workingRange,sigma2)));
+	#else
+		hrand::float2 rnd;
+		for(int id = this->workingRange.lo; id < this->workingRange.hi; id++){
 			for(int j=0; j < pop.GetDim()-1; j+=2){
-				rnd = hrand::rand_normal2(sigma);
-				pop.OffsprComponent(id,j) += rnd.x;
-				pop.OffsprComponent(id,j+1) += rnd.y;
+				rnd = hrand::rand_normal2();
+				pop.OffsprComponent(id,j) += round::round(rnd.x*sigma2);
+				pop.OffsprComponent(id,j+1) += round::round(rnd.y*sigma2);
 			}
 			//proces last odd component if any
 			if(pop.GetDim()%2){
 				//form stack object... ok?
-				pop.OffsprComponent(id,pop.GetDim()-1) += hrand::rand_normal2(sigma).x;
+				pop.OffsprComponent(id,pop.GetDim()-1) += round::round(hrand::rand_normal2().x*sigma2);
 			}
 		}
-#endif
-	}
-};
-
-template<class popContainer, int scale, int rate>
-class cauchyanNoise: public stochasticMutationMethod<popContainer>{
-	using this->pop;
-	using this->devStates;
-public:
-	int PerformMutation(){
-		const int count = (pop.GetOffsprSize()*100)/rate;
-#if USE_GPU
-		CauchyanNoiseKernel<popContainer,sigma>
-			<<<pop.GetPopsPerKernel() , std::min(MAX_THREADS_PER_BLOCK,count)>>>(pop,devStates,count);
-#else
-		for(int id = 0; id < count; id++){
-			for(int j=0; j < pop.GetDim()-1; j+=2){
-				pop.OffsprComponent(id,j) += hrand::rand_cauchyInt(scale);
-			}
-		}
-#endif
+	#endif
 	}
 };
 
