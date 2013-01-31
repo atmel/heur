@@ -1,5 +1,5 @@
-#ifndef __VYZKUM_MUTATION__
-#define __VYZKUM_MUTATION__
+#ifndef __HEURISTICS_GAUSSIAN_MUTATION__
+#define __HEURISTICS_GAUSSIAN_MUTATION__
 
 #include "heuristics.h"
 
@@ -46,7 +46,7 @@ class gaussianNoiseMutation: public slaveMethod<popContainer>, public stochastic
 	int threadCount;
 	const float sigma2;
 public:
-	gaussianNoiseMutation(float variance):sigma2(variange){};
+	gaussianNoiseMutation<popContainer,round>(float variance):sigma2(variance){};
 
 	int Init(generalInfoProvider *p){
 		//init slave
@@ -57,28 +57,29 @@ public:
 	}
 
 	int Perform(){
-	#if USE_GPU
+	#if USE_CUDA
 		CUDA_CALL("gauss mut kernel",(GaussianNoiseKernel <popContainer,round> <<<this->pop->GetPopsPerKernel(), threadCount>>>
 			(*(this->pop),this->devStates,this->workingRange,sigma2)));
 	#else
 		hrand::float2 rnd;
 		for(int id = this->workingRange.lo; id < this->workingRange.hi; id++){
-			for(int j=0; j < pop.GetDim()-1; j+=2){
+			for(int j=0; j < this->pop->GetDim()-1; j+=2){
 				rnd = hrand::rand_normal2();
-				pop.OffsprComponent(id,j) += round::round(rnd.x*sigma2);
-				pop.OffsprComponent(id,j+1) += round::round(rnd.y*sigma2);
+				this->pop->RangeComponent(id,j) += round::round(rnd.x*sigma2);
+				this->pop->RangeComponent(id,j+1) += round::round(rnd.y*sigma2);
 			}
 			//proces last odd component if any
-			if(pop.GetDim()%2){
+			if(this->pop->GetDim()%2){
 				//form stack object... ok?
-				pop.OffsprComponent(id,pop.GetDim()-1) += round::round(hrand::rand_normal2().x*sigma2);
+				this->pop->RangeComponent(id,this->pop->GetDim()-1) += round::round(hrand::rand_normal2().x*sigma2);
 			}
 		}
 	#endif
+	return 1;
 	}
 };
 
-#include "mutationBIA.h"
+//#include "mutationBIA.h"
 
 //moves only by 1 (Hamming distance), it mutates offspring only, vectorType should be integer
 //template<int dim, typename vectorType>

@@ -10,11 +10,11 @@ public:
 	#if USE_CUDA
 	static __device__ vectorType round(double x, curandState* st){
 		double t = floor(x);
-		return curand_uniform(st) > (x-t)) ? t+1:t;
+		return (curand_uniform(st) > (x-t)) ? t+1:t;
 	}
 	static __device__ vectorType round(float x, curandState* st){
 		float t = floor(x);
-		return curand_uniform(st) > (x-t)) ? t+1:t;
+		return (curand_uniform(st) > (x-t)) ? t+1:t;
 	}
 	#else
 	static inline vectorType round(double x){

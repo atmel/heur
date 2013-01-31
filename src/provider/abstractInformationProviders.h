@@ -42,6 +42,6 @@ public:
 //returns arity of operation (i.e. crossover)
 class arityProvider : public virtual generalInfoProvider{
 public:
-	virtual int* GetArity() = 0;
+	virtual int GetArity() = 0;
 };
 #endif

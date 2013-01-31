@@ -60,6 +60,7 @@ struct _float2{
 	float x,y;
 
 	_float2(const float _x, const float _y):x(_x),y(_y){}
+	_float2():x(0),y(0){};
 	inline _float2 &operator=(const float2 &rval){
 		x=rval.x;
 		y=rval.y;

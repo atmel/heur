@@ -20,7 +20,7 @@ and good memory acces pattern "shielded" from a user.
 	For purposes of use by other methods, this object is also passed by value to GPU.
 */
 
-template<typename vectorType, typename evalType>
+template<class popContainer, typename vectorType, typename evalType>
 class basicArchive{
 protected:
 //this pointers points either to RAM or GPURAM  
@@ -32,8 +32,8 @@ protected:
 	const int dim, maxGeneration, popsPerKernel;
 
 public:
-		basicArchive(int _dim, int _maxGeneration, int _popsPerKernel=1):
-			dim(_dim), maxGeneration(_maxGeneration), popsPerKernel(_popsPerKernel){
+		basicArchive(popContainer* pop, int _maxGeneration):
+			dim(pop->GetDim()), maxGeneration(_maxGeneration), popsPerKernel(pop->GetPopsPerKernel()){
 #if USE_CUDA
 			D("bestCand size is %d",(int)sizeof(vectorType)*dim*popsPerKernel*maxGeneration)
 			//allocate multiple populations, offsprings, compute strides

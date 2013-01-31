@@ -11,7 +11,8 @@
 	Fills mating pool with indices from range
 */
 #if USE_CUDA
-__global__ void TwoTournamentSelection<class popContainer>(popContainer pop, curandState *state, range rng, int *mate, int mateSize){
+template<class popContainer>
+__global__ void TwoTournamentSelection(popContainer pop, curandState *state, range rng, int *mate, int mateSize){
 	int id = threadIdx.x;
 	const int stableId = threadIdx.x + blockIdx.x*blockDim.x; //for accessing curand states
 	curandState localState = state[stableId]; //load generator state
@@ -58,7 +59,7 @@ class twoTournamentSelection : public slaveMethod<popContainer>, public stochast
 	}
 	int Perform(){			//basic 2-tournament, pop must be smaller than randmax!!
 		#if USE_CUDA
-			CUDA_CALL("tournament selection",(TwoTournamentSelection<popContainer><<<pop.GetPopsPerKernel() , threadCount>>>
+			CUDA_CALL("tournament selection",(TwoTournamentSelection<popContainer><<<this->pop->GetPopsPerKernel() , threadCount>>>
 				(*(this->pop),this->devStates,this->workingRange, mate, mateSize)));
 		#else		
 			int one,two;

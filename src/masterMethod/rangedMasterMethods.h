@@ -25,7 +25,7 @@ template<class popContainer>
 class offsprRangedMasterMethod : public masterMethod<popContainer>{
 public:
 	virtual range GetWorkingRange(){
-		return this->pop->GetOffpsrRange();
+		return this->pop->GetOffsprRange();
 	}
 	virtual range GetFullRange(){
 		return this->pop->GetOffsprRange();

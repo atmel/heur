@@ -13,7 +13,8 @@
 */
 
 #if USE_CUDA
-__global__ void OnePointCrossoverKernel<class popContainer>(popContainer pop, curandState *state, range crossRng, range fullRng, 
+template<class popContainer>
+__global__ void OnePointCrossoverKernel(popContainer pop, curandState *state, range crossRng, range fullRng, 
 																								int *mate, int mateSize){
 	int id = threadIdx.x;
 	
@@ -30,7 +31,7 @@ __global__ void OnePointCrossoverKernel<class popContainer>(popContainer pop, cu
 			pop.RangeComponent(blockIdx.x, id+crossRng.lo, j) = 
 				pop.RangeComponent(blockIdx.x, mate[2*id + blockIdx.x*mateSize], j);
 		}
-		for(/*j is already==point*/; j < this->pop->GetDim(); j++){
+		for(/*j is already==point*/; j < pop.GetDim(); j++){
 			pop.RangeComponent(blockIdx.x, id+crossRng.lo, j) = 
 				pop.RangeComponent(blockIdx.x, mate[2*id+1 + blockIdx.x*mateSize], j);
 		}
@@ -85,7 +86,7 @@ class onePointCrossover : public slaveMethod<popContainer>, public stochasticMet
 
 	int Perform(){	
 		#if USE_CUDA
-			CUDA_CALL("onepoint crossover kernel",(OnePointCrossoverKernel<popContainer><<<pop.GetPopsPerKernel(),threadCount>>>
+			CUDA_CALL("onepoint crossover kernel",(OnePointCrossoverKernel<popContainer><<<this->pop->GetPopsPerKernel(),threadCount>>>
 				(*(this->pop), this->devStates, this->workingRange, this->fullRange, mate, mateSize)));
 		#else		
 			int i,j,mIdx;

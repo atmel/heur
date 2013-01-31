@@ -26,7 +26,7 @@
 	gInd is array of first <resLength> indices (part that the we originally wanted to be sorted)
 */
 template<class popContainer, typename evalType>
-__global__ void FullBitonicSortKernel(popContainer pop, int rngLo, int *gInd, int resLength, evalType *gFit){
+__global__ void FullBitonicSortKernel(popContainer pop, int rngLo, int *gInd, int resLength, evalType* gFit){
 	//setup shared
 	extern __shared__ int dynamic[];
 	const int allignedFitSize = ALLIGN_64((blockDim.x*2)*sizeof(evalType)); //allign to 8 bytes
@@ -84,7 +84,7 @@ class rangedSorting : public slaveMethod<popContainer>{
 	//retrieved from master (for GPU result)
 	int *indices;
 	//DEBUG:
-	//evalType *fitnesses;
+	evalType *fitnesses;
 
 	//for local sorting
 	indexElement<evalType> *els;
@@ -101,9 +101,9 @@ public:
 		
 		#if USE_CUDA
 			//DEBUG:
-			//D("Sorting: length of indices: %d",this->pop->GetPopsPerKernel()*this->workingRange.length );
-			//cudaMalloc(&fitnesses,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
-			//cudaMemset(fitnesses,0,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
+			D("Sorting: length of indices: %d",this->pop->GetPopsPerKernel()*this->workingRange.length );
+			cudaMalloc(&fitnesses,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
+			cudaMemset(fitnesses,0,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
 		#else
 			//allocate internal array
 			els = new indexElement<evalType>[this->fullRange.length];
@@ -114,7 +114,7 @@ public:
 	//dealocate array
 	~rangedSorting<popContainer,evalType>(){
 		//DEBUG
-		//cudaFree(fitnesses);
+		cudaFree(fitnesses);
 
 		#if !USE_CUDA
 			if(els != 0) delete [] els;
@@ -131,14 +131,14 @@ public:
 
 		//DEBUG:
 		//D("Error?: %s",cudaGetErrorString(cudaGetLastError()))
-		/*D("Sorting: printing fitnesses")
+		D("Sorting: printing fitnesses")
 		evalType *fitToPrint = new evalType[this->pop->GetPopsPerKernel()*this->workingRange.length];
 		CUDA_CALL("Sorting Memcpy",(cudaMemcpy(fitToPrint, fitnesses, this->pop->GetPopsPerKernel()*this->workingRange.length * sizeof(evalType), 
 		  cudaMemcpyDeviceToHost)))
 		
 		for(int i = 0; i< this->workingRange.length*this->pop->GetPopsPerKernel();i++){
 			std::cout << fitToPrint[i] << ", ";
-		}*/
+		}
 	#else
 		//fill structure
 		for(int i = 0; i < this->fullRange.length; i++){

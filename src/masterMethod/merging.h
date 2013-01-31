@@ -35,7 +35,7 @@ public:
 
 		//init sorting with appropriate ranges
 		fRange = this->pop->GetOffsprRange();
-		wRange = makeRange(this->pop->GetPopSize(), 2*this->pop->GetPopSize());
+		wRange = makeRange(fRange.lo, fRange.lo + this->pop->GetPopSize());
 		//DEBUG:
 		//fRange = wRange = this->pop->GetPopRange();
 		if(! this->methods[0]->Init(this)) EXIT0("Merging Init: sort submethod init unsuccessfull")

@@ -9,25 +9,40 @@ typedef basicArchive<RScandCont,int,int> RSbasArch;
 
 int main(void){
 
-	RScandCont *cc = new RScandCont(DIM,512,0,POPS);
+	RScandCont *cc = new RScandCont(DIM,64,128,POPS);
 	RSbasArch *ac = new RSbasArch(cc,1000);
 	int lo[]={-10,-100,-1000,-10000,-10000}, hi[] = {10,100,1000,10000,10000};
 	cc->SetLimits(lo,hi);
 	//new population
 	basicPopulation<RScandCont,RSbasArch> *RSpop = new basicPopulation<RScandCont,RSbasArch>(cc,ac);
 	bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,int,int> *arch = 
-		new bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,int,int>("testPop");
+		new bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,int,int>("testPopGO");
 
-	/*RSpop->AddInitialization(new popRangedMasterMethod<popContainer>()
-								->Add(new pseudouniformRandomInitialization<popContainer>)
-								->Add(new someEvaluation.......)
-							);*/
-	RSpop->AddExecution((new popRangedMasterMethod<RScandCont>())
+	//initialize
+	RSpop->AddInitialization((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
 							->Add(new periodicPertubation<RScandCont>())
 							->Add(new sphericFunction<RScandCont>())
-							//->Add(new replaceMerging<RScandCont,int,int>())
 							);
+	//reproduction
+	RSpop->AddExecution((new reproductionMethod<RScandCont>(0.9))
+							->Add(new twoTournamentSelection<RScandCont>())
+							->Add(new onePointCrossover<RScandCont>())
+							);
+	//mutation
+	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
+							->Add((new mutationWrapper<RScandCont>(0.9,0.2))
+								->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<int> >(100.0)))
+							);
+							
+	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
+							->Add(new periodicPertubation<RScandCont>())
+							->Add(new sphericFunction<RScandCont>())
+							);
+							
+				  
+	RSpop->AddExecution(new replaceMerging<RScandCont,int,int>());
+
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
 						);
@@ -36,7 +51,7 @@ int main(void){
 	  std::cout << "init UNsuccessfull\n";
 	  return 0;
 	}
-	for(int i=0;i<3;i++){
+	for(int i=0;i<10;i++){
 	  std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
 		std::cout << "Error during Next Generation\n";

@@ -38,12 +38,13 @@ __global__ void MoveKernelComponentPerThread(popContainer pop, range rng, int *g
 
 	int cand = threadIdx.x/pop.GetDim();
 	int comp = threadIdx.x % pop.GetDim();
+	int stride = blockDim.x/pop.GetDim();
 	//load to shared
-	dynamic[comp*blockDim.x + cand] = pop.RangeComponent(blockIdx.x, gInd[cand], comp);
+	dynamic[comp*stride + cand] = pop.RangeComponent(blockIdx.x, gInd[cand], comp);
 	__syncthreads();
 
 	//copy to destination
-	pop.RangeComponent(blockIdx.x, rng.lo + cand, comp) = dynamic[comp*blockDim.x + cand];
+	pop.RangeComponent(blockIdx.x, rng.lo + cand, comp) = dynamic[comp*stride + cand];
 	__syncthreads();
 
 	//copy fitness:

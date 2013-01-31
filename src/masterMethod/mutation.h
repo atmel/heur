@@ -44,8 +44,8 @@ public:
 		wRange = makeRange(this->workingRange.lo + prevFrac - overlap, this->workingRange.lo + prevFrac - overlap + currFrac);
 
 		//init all submethods with this object!
-		for(int i=0;i < methods.size(); i++) 
-			if(! methods[i]->Init(this)) EXIT0("Composed Init: submethod init unsuccessfull, method number: %d", i)
+		for(int i=0;i < this->methods.size(); i++) 
+			if(! this->methods[i]->Init(this)) EXIT0("Composed Init: submethod init unsuccessfull, method number: %d", i)
 
 		return 1;
 	}
