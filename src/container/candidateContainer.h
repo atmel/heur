@@ -53,8 +53,9 @@ class basicCandidateContainer{
 	//GPU strides -- pop1<->pop2 , comp1<->comp2
 	const int wholePopStride, rowStride;
 
-	//limits -- 
-	vectorType *upperLimit,*lowerLimit;
+	//limits -- candidate coordinates are in range [lowerLimit, upperLimit) 
+	// NOTE THE  [ )  !!! ... pertubation works that way
+ 	vectorType *upperLimit,*lowerLimit;
 
 	public:
 		basicCandidateContainer(int _dim, int _popSize, int _offsprSize, int _popsPerKernel=1):
@@ -123,10 +124,6 @@ class basicCandidateContainer{
 
 		//meant to use for cudaMemcpy and effective evaluation (passing only one array)
 		inline __device__ __host__ int GetVectorTypeSize() const {return sizeof(vectorType);}
-		/*inline __device__ __host__ vectorType* GetPopComponentArray {return popComponent;}
-		inline __device__ __host__ vectorType* GetOffsprComponentArray {return offsprComponent;}
-		inline __device__ __host__ evalType* GetPopFitnessArray {return popFitness;}
-		inline __device__ __host__ evalType* GetOffsprFitnessArray {return offsprFitness;}*/
 
 		inline __device__ __host__ vectorType GetUpperLimit(int i) const {return upperLimit[i];}
 		inline __device__ __host__ vectorType GetLowerLimit(int i) const {return lowerLimit[i];}
@@ -157,6 +154,10 @@ class basicCandidateContainer{
 
 		//only from CPU now
 		void SetLimits(vectorType *lo, vectorType *hi){
+			for(int i=0; i < dim; i++){
+				if(lo[i] == hi[i]) EXIT0("SettingLimits: %d-th lower limit same as upper limit. That is forbidden. Candidate \
+					coordinates are in range [lower,upper)", i)
+			}
 			cudaMemcpy(upperLimit,hi,sizeof(vectorType)*dim,cudaMemcpyHostToDevice);
 			cudaMemcpy(lowerLimit,lo,sizeof(vectorType)*dim,cudaMemcpyHostToDevice);
 		}

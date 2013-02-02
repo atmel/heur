@@ -21,8 +21,9 @@ __global__ void PseudouniformRandomInitializationKernel(popContainer pop, curand
 		}
 		for(int j=0; j< pop.GetDim(); j++){
 			//here uniform is used so insufficient RAND_MAX is solved internally
-			pop.RangeComponent(blockIdx.x, id,j) = curand_uniform(&localState)*(pop.GetUpperLimit(j) - pop.GetLowerLimit(j))
-					+ pop.GetLowerLimit(j);
+			//constant is substracted because curand_uniform returns values from [0,1] ... check that!! and we want [0,1)
+			pop.RangeComponent(blockIdx.x, id,j) = floor(curand_uniform(&localState)*(pop.GetUpperLimit(j) - pop.GetLowerLimit(j) - 0.0001)) 
+				+ pop.GetLowerLimit(j);
 		}
 	}
 	//threads from the last run save state here
@@ -30,7 +31,7 @@ __global__ void PseudouniformRandomInitializationKernel(popContainer pop, curand
 }
 #endif
 
-/* Performs random nearly uniform initialization of candidates within limits
+/* Performs random nearly uniform initialization of candidates within limits [lower,upper)
 	!!!
 	This expercts RAND_MAX to be large enough (at least upper-lower)
 	!!!

@@ -21,7 +21,7 @@ int main(void){
 	//initialize
 	RSpop->AddInitialization((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
-							->Add(new periodicPertubation<RScandCont>())
+							//->Add(new periodicPertubation<RScandCont>())  //crossover cannot break limits
 							->Add(new sphericFunction<RScandCont>())
 							);
 	//reproduction
@@ -32,11 +32,11 @@ int main(void){
 	//mutation
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
 							->Add((new mutationWrapper<RScandCont>(0.9,0.2))
-								->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<int> >(100.0)))
+								->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<int> >(100.0))
+                ->Add(new periodicPertubation<RScandCont>())) // we need to pertube only after mutation!
 							);
 							
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add(new periodicPertubation<RScandCont>())
 							->Add(new sphericFunction<RScandCont>())
 							);
 							

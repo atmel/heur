@@ -14,6 +14,7 @@
 #include "curandom.h"
 #include "range.h"
 #include "rounding.h"
+#include "timer.h"
 
 //build options
 

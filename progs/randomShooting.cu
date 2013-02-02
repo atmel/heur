@@ -24,9 +24,8 @@ int main(void){
 							);*/
 	RSpop->AddExecution((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
-							->Add(new periodicPertubation<RScandCont>())
+							//->Add(new periodicPertubation<RScandCont>())      // init respects limits!
 							->Add(new sphericFunction<RScandCont>())
-							//->Add(new replaceMerging<RScandCont,int,int>())
 							);
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)

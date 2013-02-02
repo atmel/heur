@@ -27,7 +27,7 @@ class composedMethod : public abstractGeneralMethod<popContainer>, public popula
 	}
 
 	//return this so the calls can be chained
-	composedMethod<popContainer>* Add(abstractGeneralMethod<popContainer> *m){
+	virtual composedMethod<popContainer>* Add(abstractGeneralMethod<popContainer> *m){
 		methods.push_back(m);
 		D("Composed: added submethod, total %d methods", (int)methods.size())
 		return this;
