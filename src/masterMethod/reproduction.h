@@ -30,7 +30,7 @@ class reproductionMethod: public masterMethod<popContainer>, public mateProvider
 		arityProvider* ap = dynamic_cast<arityProvider*>(this->methods[1]);
 		if(ap == NULL) EXIT0("Reproduction: crossover (method[1]) to arityProvider cast unsuccesfull")
 		crossFrac = this->pop->GetOffsprSize()*crossProb;
-		mateSize = (this->pop->GetOffsprSize() - crossFrac) + crossFrac*ap->GetArity();
+		mateSize = (this->pop->GetOffsprSize() - crossFrac) + crossFrac*(ap->GetArity());
 
 		D("Reproduction init: mateSize is: %d", mateSize)
 		//alloc mate

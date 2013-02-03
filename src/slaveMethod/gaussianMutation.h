@@ -67,12 +67,14 @@ public:
 				rnd = hrand::rand_normal2();
 				this->pop->RangeComponent(id,j) += round::round(rnd.x*sigma2);
 				this->pop->RangeComponent(id,j+1) += round::round(rnd.y*sigma2);
+				//std::cout << round::round(rnd.x*sigma2) << ", "<< round::round(rnd.y*sigma2) << "; ";
 			}
 			//proces last odd component if any
 			if(this->pop->GetDim()%2){
 				//form stack object... ok?
 				this->pop->RangeComponent(id,this->pop->GetDim()-1) += round::round(hrand::rand_normal2().x*sigma2);
 			}
+			//std::cout << round::round(hrand::rand_normal2().x*sigma2) << "\n";
 		}
 	#endif
 	return 1;

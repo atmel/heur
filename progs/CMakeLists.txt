@@ -1,3 +1,3 @@
 #add_cpu_gpu_exe(biaTest bia.cpp)
-add_cpu_gpu_exe(RStest randomShooting.cu)
-add_cpu_gpu_exe(GOtest geneticOptimization.cu)
+add_cpu_gpu_exe(RStest randomShooting.cpp)
+add_cpu_gpu_exe(GOtest geneticOptimization.cpp)

@@ -36,12 +36,17 @@ protected:
 		CUDA_CALL("spheric eval",(SphericFunctionKernel<popContainer>
 				<<<this->pop->GetPopsPerKernel() , std::min(MAX_THREADS_PER_BLOCK,this->workingRange.length)>>>(*(this->pop),this->workingRange)))
 #else
+		D("evaluating range [%d - %d)",this->workingRange.lo, this->workingRange.hi)
 		for(int i=this->workingRange.lo; i < this->workingRange.hi; i++){
 			this->pop->RangeFitness(i) = 0;
 			for(int j=0; j< this->pop->GetDim();j++){		
 				this->pop->RangeFitness(i) += this->pop->RangeComponent(i,j)*(this->pop->RangeComponent(i,j));
+				//std::cout << this->pop->RangeComponent(i,j) << ", ";
 			}
+			//D("")
+			//D("%d", this->pop->RangeFitness(i))
 		}
+		D("finished evaluation")
 #endif
 		return 1;
 	}

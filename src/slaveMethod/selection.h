@@ -66,8 +66,10 @@ class twoTournamentSelection : public slaveMethod<popContainer>, public stochast
 			for(int i=0;i<mateSize;i++){
 				one = rand() % this->workingRange.length + this->workingRange.lo;
 				two = rand() % this->workingRange.length + this->workingRange.lo;
-				mate[i] = (this->pop->RangeFitness(one) < this->pop->.RangeFitness(two))?one:two;
+				mate[i] = (this->pop->RangeFitness(one) < this->pop->RangeFitness(two))?one:two;
+				//std::cout << mate[i] << ", ";
 			}
+			//D("")
 		#endif
 		return 1;
 	}

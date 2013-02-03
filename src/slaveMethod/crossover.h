@@ -90,6 +90,8 @@ class onePointCrossover : public slaveMethod<popContainer>, public stochasticMet
 				(*(this->pop), this->devStates, this->workingRange, this->fullRange, mate, mateSize)));
 		#else		
 			int i,j,mIdx;
+			//D("Mate size is %d", mateSize)
+			//D("Fraction to crossover is %d", this->workingRange.length)
 			//crossover part
 			for(i=this->workingRange.lo, mIdx = 0; i<this->workingRange.hi; i++, mIdx +=2){
 				int point = rand() % (this->pop->GetDim()-1) + 1;	//not all components from one candidate
@@ -101,7 +103,9 @@ class onePointCrossover : public slaveMethod<popContainer>, public stochasticMet
 				}
 			}
 			//from work.hi to full.hi just copy. For mate indexing use mIdx which points to the beginning of "copy part" 
+			
 			for(; i<this->fullRange.hi; i++, mIdx++){
+				//D("Offspr idx is %d, mIdx id %d", i, mIdx)
 				for(j=0; j < this->pop->GetDim(); j++){
 					this->pop->RangeComponent(i,j) = this->pop->RangeComponent(mate[mIdx],j);
 				}

@@ -4,6 +4,7 @@
 #include "heuristics.h"
 #include<cuda.h>
 #include<curand_kernel.h>
+#include <iostream>
 
 #if USE_CUDA
 
@@ -72,9 +73,11 @@ struct _float2{
 inline float2 rand_normal2(){
 #define PI 3.1415926535897932f
 	//get x from (0,1] independent on implementation (consider RAND_MAX = 32767 = 0x7FFF)
-	float x = ((rand() & 0x7FFF) + 1)/(0x7FFF + 1); // i.e. from (0,1]
+	float x = (float)((int)(rand() & 0x7FFF) + 1)/(0x7FFF + 1); // i.e. from (0,1]
+	//std::cout << x << ", ";
 	float R = sqrt(-2*log(x));
-	float theta = 2*PI*(rand() & 0x7FFF)/(0x7FFF + 1); // i.e. from [0,2pi)
+	float theta = 2*PI*(float)(rand() & 0x7FFF)/(0x7FFF + 1); // i.e. from [0,2pi)
+	//std::cout << sin(theta) << ", " << cos(theta) << "; ";
 	return float2(R*sin(theta),R*cos(theta));
 #undef PI
 }

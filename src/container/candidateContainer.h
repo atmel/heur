@@ -84,7 +84,7 @@ class basicCandidateContainer{
 			popComponent = new vectorType[dim*(popSize+offsprSize)];
 			//the first component of the first offspring is after last candidate of population
 			offsprComponent = &popComponent[popSize*dim];   //new vectorType[dim*offsprSize];
-			popFitness = new evalType[popSize];
+			popFitness = new evalType[popSize+offsprSize];
 			offsprFitness = &popFitness[popSize];  //new evalType[offsprSize];
 			upperLimit = new vectorType[dim];
 			lowerLimit = new vectorType[dim];
@@ -153,13 +153,14 @@ class basicCandidateContainer{
 		}
 
 		//only from CPU now
-		void SetLimits(vectorType *lo, vectorType *hi){
+		int SetLimits(vectorType *lo, vectorType *hi){
 			for(int i=0; i < dim; i++){
-				if(lo[i] == hi[i]) EXIT0("SettingLimits: %d-th lower limit same as upper limit. That is forbidden. Candidate \
-					coordinates are in range [lower,upper)", i)
+				if(lo[i] == hi[i]) EXIT0("SettingLimits: %d-th lower limit same as upper limit. That is forbidden. Candidate" 
+				"coordinates are in range [lower,upper)", i+1)
 			}
-			cudaMemcpy(upperLimit,hi,sizeof(vectorType)*dim,cudaMemcpyHostToDevice);
-			cudaMemcpy(lowerLimit,lo,sizeof(vectorType)*dim,cudaMemcpyHostToDevice);
+			CUDA_CALL("Cand container Set Limits Memcpy",(cudaMemcpy(upperLimit,hi,sizeof(vectorType)*dim,cudaMemcpyHostToDevice)))
+			CUDA_CALL("Cand container Set Limits Memcpy",(cudaMemcpy(lowerLimit,lo,sizeof(vectorType)*dim,cudaMemcpyHostToDevice)))
+			return 1;
 		}
 		inline __device__ void MoveToPop(const int globIdx, const int popIdx, const int offsprIdx){
 			for(int i=0; i < dim; i++){
@@ -168,7 +169,7 @@ class basicCandidateContainer{
 			PopFitness(globIdx,popIdx) = OffsprFitness(globIdx,offsprIdx);
 		}
 #else
-		inline vectorType& PopComponent(const int cand, const int comp){
+		/*inline vectorType& PopComponent(const int cand, const int comp){
 			//row-major!
 			return popComponent[dim*cand + comp];
 		}
@@ -181,7 +182,7 @@ class basicCandidateContainer{
 		}
 		inline evalType& OffsprFitness(const int cand){
 			return offsprFitness[cand];
-		}
+		}*/
 		//for evaluation
 		inline vectorType& RangeComponent(const int idx, const int comp){
 			//row-major!
@@ -192,16 +193,17 @@ class basicCandidateContainer{
 		}
 		
 		//only from CPU now
-		void SetLimits(vectorType *lo, vectorType *hi){
+		int SetLimits(vectorType *lo, vectorType *hi){
 			memcpy(upperLimit,hi,sizeof(vectorType)*dim);
 			memcpy(lowerLimit,lo,sizeof(vectorType)*dim);
+			return 1;
 		}
-		inline void MoveToPop(const int popIdx, const int offsprIdx){
+		/*inline void MoveToPop(const int popIdx, const int offsprIdx){
 			for(int i=0; i < dim; i++){
 				PopComponent(popIdx,i) = OffsprComponent(offsprIdx,i);
 			}
 			PopFitness(popIdx) = OffsprFitness(offsprIdx);
-		}
+		}*/
 #endif
 };
 

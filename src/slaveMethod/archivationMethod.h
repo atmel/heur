@@ -163,19 +163,24 @@ class bestCandArchivedFitnessArchivationMethod : public archivationMethod<popCon
 
 #else
 		//find minimal fitness, remember that candidate
+		D("Archivation: finding minimum")
 		int bestIdx = this->workingRange.lo;
 		evalType best = this->pop->RangeFitness(this->workingRange.lo);
+		
 		for(int i = this->workingRange.lo + 1; i < this->workingRange.hi; i++){
 			if(this->pop->RangeFitness(i) < best){
 				bestIdx = i;
 				best = this->pop->RangeFitness(i);
 			}
 		}
+		D("Saving fitness, currIdx = %d, best = %d", this->currentIndex, best)
 		//save best to array
 		this->arch->BestPopFitness(this->currentIndex) = best;
+		D("Saving Candidate")
 		for(int i=0; i< this->pop->GetDim(); i++){
 			this->arch->BestCandComponent(this->currentIndex,i) = this->pop->RangeComponent(bestIdx,i);
 		}
+		D("Finished saving")
 #endif
 		//increment current index
 		this->currentIndex++;

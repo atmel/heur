@@ -94,9 +94,29 @@ public:
 		}
 	#else
 
-		//odstranit cykly, presunout
-
-
+		/*reshuffle index so destination of each move is not needed at time the move is performed:
+		  i.e. seqence 3,1,10 is bad, because when we move third element onto the fitst place, we
+		  lose the first element needed next step.
+		  
+		  Imagine the edges runing from element's desired position to actual position. Our goal is 
+		  to remove all edges running backwards. This is done by swapping the elements.
+		*/
+		int tmp;
+		#define SWAP(X,Y){tmp = X; X=Y; Y=tmp;}
+		int c = this->workingRange.lo;
+		for(int i=0; i<this->workingRange.length; i++){
+			while((c <= indices[i]) && (indices[i] < c+i)){ 
+				SWAP(indices[indices[i]-c] , indices[i]); // order matters here
+			}
+		}
+		#undef SWAP
+		//now move -- partial sorting is preserved
+		for(int i=0; i<this->workingRange.length; i++){
+			for(int j=0; j<this->pop->GetDim(); j++){
+				this->pop->RangeComponent(i+c,j) = this->pop->RangeComponent(indices[i],j);
+			}
+			this->pop->RangeFitness(i+c) = this->pop->RangeFitness(indices[i]);
+		}
 	#endif
 		return 1;
 	}

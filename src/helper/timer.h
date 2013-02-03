@@ -7,13 +7,16 @@
 
 #include "heuristics.h" 
 #include <time.h>
+#include <string>
+#include <cstdio>
 
 class timer{
 	timespec start, end;
 	clockid_t id;
 
 public:
-	timer(clockid_t _id):id(_id){};
+	timer(clockid_t _id = CLOCK_PROCESS_CPUTIME_ID):id(_id){};
+	
 	void Start(){
 		clock_gettime(id, &start);
 	}
@@ -30,6 +33,13 @@ public:
 		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
 		return temp;
 	}
+	std::string PrintElapsedTime(){
+	  char s[400];
+	  timespec t = GetElapsedTime();
+	  sprintf(s,"%lds, %ldns", (long int)t.tv_sec, (long int)t.tv_nsec);
+	  return std::string(s);
+	}
+	
 };
 
 

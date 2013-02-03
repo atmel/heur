@@ -68,7 +68,9 @@ __global__ void FullBitonicSortKernel(popContainer pop, int rngLo, int *gInd, in
 	for(int i=0; i<2; i++, id += blockDim.x){
 		if(id < resLength){  //complete - copy only working range
 			gInd[id + blockIdx.x*resLength] = ind[id];
+			#if H_DEBUG
 			gFit[id + blockIdx.x*resLength] = fit[id];
+			#endif
 		}
 	}
 }
@@ -101,9 +103,11 @@ public:
 		
 		#if USE_CUDA
 			//DEBUG:
+			#if H_DEBUG
 			D("Sorting: length of indices: %d",this->pop->GetPopsPerKernel()*this->workingRange.length );
 			cudaMalloc(&fitnesses,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
 			cudaMemset(fitnesses,0,this->pop->GetPopsPerKernel()*sizeof(evalType)*(this->workingRange.length));
+			#endif
 		#else
 			//allocate internal array
 			els = new indexElement<evalType>[this->fullRange.length];
@@ -114,7 +118,9 @@ public:
 	//dealocate array
 	~rangedSorting<popContainer,evalType>(){
 		//DEBUG
+		#if H_DEBUG
 		cudaFree(fitnesses);
+		#endif
 
 		#if !USE_CUDA
 			if(els != 0) delete [] els;
@@ -130,6 +136,7 @@ public:
 			(*(this->pop), this->workingRange.lo, indices, this->workingRange.length, fitnesses)))
 
 		//DEBUG:
+		#if H_DEBUG
 		//D("Error?: %s",cudaGetErrorString(cudaGetLastError()))
 		D("Sorting: printing fitnesses")
 		evalType *fitToPrint = new evalType[this->pop->GetPopsPerKernel()*this->workingRange.length];
@@ -139,6 +146,7 @@ public:
 		for(int i = 0; i< this->workingRange.length*this->pop->GetPopsPerKernel();i++){
 			std::cout << fitToPrint[i] << ", ";
 		}
+		#endif
 	#else
 		//fill structure
 		for(int i = 0; i < this->fullRange.length; i++){
