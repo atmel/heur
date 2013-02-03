@@ -39,6 +39,7 @@
 
 //stages
 #include "evaluation.h"
+#include "evaluationSudoku.h"
 #include "initialization.h"
 #include "pertubation.h"
 #include "archivationMethod.h"
