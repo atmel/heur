@@ -40,7 +40,10 @@ __global__ void FullBitonicSortKernel(popContainer pop, int rngLo, int *gInd, in
 	for(int i=0; i<2; i++, id += blockDim.x){
 		fit[id] = pop.RangeFitness(blockIdx.x,id + rngLo);
 		ind[id] = id + rngLo;
+		//printf("%d, %d;   ", ind[id],fit[id]);
 	}
+	// jak jsem to kurva mohl zapomenout????
+	__syncthreads();
 
 	id = threadIdx.x;
 	//soooooort
@@ -70,6 +73,7 @@ __global__ void FullBitonicSortKernel(popContainer pop, int rngLo, int *gInd, in
 			gInd[id + blockIdx.x*resLength] = ind[id];
 			#if H_DEBUG
 			gFit[id + blockIdx.x*resLength] = fit[id];
+			//printf("%d, %d;   ", ind[id],fit[id]);
 			#endif
 		}
 	}

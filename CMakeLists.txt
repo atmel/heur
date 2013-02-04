@@ -34,9 +34,9 @@ endif()
   
 macro(add_cpu_gpu_exe EXENAME FILENAME)
   if(USE_GPU)
-	cuda_add_executable(${EXENAME} ${FILENAME})
+	cuda_add_executable(${EXENAME} ${FILENAME}.cu)
   else(USE_GPU)
-	add_executable(${EXENAME} ${FILENAME})
+	add_executable(${EXENAME} ${FILENAME}.cpp)
   endif()
 endmacro(add_cpu_gpu_exe)
 

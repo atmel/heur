@@ -9,6 +9,7 @@ typedef basicArchive<RScandCont,int,int> RSbasArch;
 
 int main(void){
 
+	timer t;
 	RScandCont *cc = new RScandCont(DIM,512,0,POPS);
 	RSbasArch *ac = new RSbasArch(cc,100);
 	//int lo[]={-10,-100,-1000,-10000,-10000}, hi[] = {11,101,1001,10001,10001};
@@ -25,17 +26,17 @@ int main(void){
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1
 	}, hi[] = {
-	100,100,100, 100,100,100, 100,100,100,
-	100,100,100, 100,100,100, 100,100,100,
-	100,100,100, 100,100,100, 100,100,100,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
 
-	100,100,100, 100,100,100, 100,100,100,
-	100,100,100, 100,100,100, 100,100,100,
-	100,100,100, 100,100,100, 100,100,100,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
 
-	100,100,100, 100,100,100, 100,100,100,
-	100,100,100, 100,100,100, 100,100,100,
-	100,100,100, 100,100,100, 100,100,100
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10
 	};
 	if(!cc->SetLimits(lo,hi)) return 0;
 	//new population
@@ -49,8 +50,7 @@ int main(void){
 							);*/
 	RSpop->AddExecution((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
-							//->Add(new periodicPertubation<RScandCont>())      // init respects limits!
-							->Add(new evaluationSodoku<RScandCont>())
+							->Add(new sudokuEvaluation<RScandCont>())
 							);
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
@@ -60,13 +60,16 @@ int main(void){
 	  std::cout << "init UNsuccessfull\n";
 	  return 0;
 	}
-	for(int i=0;i<3;i++){
-	  std::cout << i << "-th generation\n";
+	t.Start();
+	for(int i=0;i<100;i++){
+	  //std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
 		std::cout << "Error during Next Generation\n";
 		return 0;
 	  }
 	}
+	t.Stop();
+	std::cout << "Time of run: " << t.PrintElapsedTime() << "\n";
 	  
 	cout << "Saving to file\n";
 	arch->SaveToFile();

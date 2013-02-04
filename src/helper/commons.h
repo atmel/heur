@@ -2,7 +2,7 @@
 #define __HEURISTICS_COMMONS__
 
 //debug version!!
-#define USE_CUDA 0
+#define USE_CUDA 1
 #define MAX_THREADS_PER_BLOCK 512
 
 #if !USE_CUDA
@@ -24,7 +24,7 @@
 #else
 #endif
 
-#define H_DEBUG 0
+#define H_DEBUG 1
 
 //debug print
 #if H_DEBUG

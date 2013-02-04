@@ -4,6 +4,7 @@
 #include "heuristics.h"
 #include <fstream>
 #include <ios>
+#include <typeinfo>
 
 /* General rule for saving to files: save data so that pieces of complete information 
 	is found consecultively in rows or columns.
@@ -204,7 +205,14 @@ class bestCandArchivedFitnessArchivationMethod : public archivationMethod<popCon
 		//save them
 		//candTmp[0] = candTmp[1] = 13;
 		for(int i=0;i<generationsToSave;i++){
-			for(int j=0;j<candStride;j++) fBestC << candTmp[j+i*candStride] << ", ";
+			//do not print letters when char...
+			for(int j=0;j<candStride;j++){ 
+			  if(typeid(vectorType) == typeid(char)){
+				  fBestC << (int)(candTmp[j+i*candStride]) << ", ";
+			  }else{
+				  fBestC << candTmp[j+i*candStride] << ", ";
+			  }
+			}
 			fBestC << "\n";
 		}
 

@@ -1,18 +1,45 @@
 #include "heuristics.h"
 #include <iostream>
 
-#define DIM 10
+#define DIM 81
 #define POPS 1
 
-typedef basicCandidateContainer<int,int> RScandCont;
-typedef basicArchive<RScandCont,int,int> RSbasArch;
+typedef char vType;
+
+typedef basicCandidateContainer<vType,int> RScandCont;
+typedef basicArchive<RScandCont,vType,int> RSbasArch;
 
 int main(void){
 
-	RScandCont *cc = new RScandCont(DIM,64,128,POPS);
+	RScandCont *cc = new RScandCont(DIM,512,1024,POPS);
 	RSbasArch *ac = new RSbasArch(cc,1000);
-	int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
-		hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
+	//int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
+	//	hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
+	vType lo[]={
+	1,1,1, 1,1,1, 1,1,1,
+	1,1,1, 1,1,1, 1,1,1,
+	1,1,1, 1,1,1, 1,1,1,
+	
+	1,1,1, 1,1,1, 1,1,1,
+	1,1,1, 1,1,1, 1,1,1,
+	1,1,1, 1,1,1, 1,1,1,
+	
+	1,1,1, 1,1,1, 1,1,1,
+	1,1,1, 1,1,1, 1,1,1,
+	1,1,1, 1,1,1, 1,1,1
+	}, hi[] = {
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10,
+	10,10,10, 10,10,10, 10,10,10
+	};
 	if(!cc->SetLimits(lo,hi)) return 0;
 	
 	timer t;
@@ -23,8 +50,8 @@ int main(void){
   
 	//new population
 	basicPopulation<RScandCont,RSbasArch> *RSpop = new basicPopulation<RScandCont,RSbasArch>(cc,ac);
-	bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,int,int> *arch = 
-		new bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,int,int>("testPopGO");
+	bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,vType,int> *arch = 
+		new bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,vType,int>("testPopGO");
 
 	//initialize
 	RSpop->AddInitialization((new popRangedMasterMethod<RScandCont>())
@@ -33,23 +60,23 @@ int main(void){
 							->Add(new sphericFunction<RScandCont>())
 							);
 	//reproduction
-	RSpop->AddExecution((new reproductionMethod<RScandCont>(0.9))
+	RSpop->AddExecution((new reproductionMethod<RScandCont>(0.3))
 							->Add(new twoTournamentSelection<RScandCont>())
 							->Add(new onePointCrossover<RScandCont>())
 							);
 	//mutation
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add((new mutationWrapper<RScandCont>(0.9,0.5))
-								->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<int> >(50.0))
+							->Add((new mutationWrapper<RScandCont>(0.3,0.9))
+								->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<int> >(1))
               					->Add(new periodicPertubation<RScandCont>())) // we need to pertube only after mutation!
 							);
 							
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add(new sphericFunction<RScandCont>())
+							->Add(new sphericFunction<RScandCont>())//sudokuEvaluation<RScandCont>())
 							);
 							
 				  
-	RSpop->AddExecution(new replaceMerging<RScandCont,int,int>());
+	RSpop->AddExecution(new replaceMerging<RScandCont,vType,int>());
 
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
@@ -64,7 +91,7 @@ int main(void){
 	std::cout << "---- Time of initialization: " << t.PrintElapsedTime() << "\n";
 	
 	t.Start();
-	for(int i=0;i<100;i++){
+	for(int i=0;i<1000;i++){
 	  //std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
 		std::cout << "Error during Next Generation\n";
@@ -76,6 +103,7 @@ int main(void){
 	
 	cout << "Saving to file\n";
 	arch->SaveToFile();
+	cudaDeviceReset();
 
 return 0;
 }

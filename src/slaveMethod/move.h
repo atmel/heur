@@ -11,11 +11,14 @@
 */
 template<class popContainer, typename vectorType, typename evalType>
 __global__ void MoveKernelCandidatePerThread(popContainer pop, range rng, int *gInd){
-	extern __shared__ vectorType dynamic[];
+	extern __shared__ int _dynamic[];
+	vectorType *dynamic = reinterpret_cast<vectorType*>(_dynamic);
 
 	int id = threadIdx.x;
 	//load to shared
+	//printf("%d; ", gInd[id]);
 	for(int i=0; i<pop.GetDim();i++){
+		
 		dynamic[i*blockDim.x + id] = pop.RangeComponent(blockIdx.x, gInd[id], i);
 	}
 	evalType fitness = pop.RangeFitness(blockIdx.x, gInd[id]);
@@ -34,7 +37,8 @@ __global__ void MoveKernelCandidatePerThread(popContainer pop, range rng, int *g
 */
 template<class popContainer, typename vectorType, typename evalType>
 __global__ void MoveKernelComponentPerThread(popContainer pop, range rng, int *gInd){
-	extern __shared__ vectorType dynamic[];
+	extern __shared__ int _dynamic[];
+	vectorType *dynamic = reinterpret_cast<vectorType*>(_dynamic);
 
 	int cand = threadIdx.x/pop.GetDim();
 	int comp = threadIdx.x % pop.GetDim();
@@ -74,6 +78,9 @@ public:
 		sortResourceProvider *srp = dynamic_cast<sortResourceProvider*>(p);
 		if(srp == NULL) EXIT0("moveToRangeMethod: resource provider cast unsuccessfull")
 		indices = srp->GetIndexArray();
+		//TEMPORARY MEM SIZE check
+		if(std::min(MAX_THREADS_PER_BLOCK,this->workingRange.length)*this->pop->GetDim() * sizeof(vectorType) > 48000) 
+		  EXIT0("moveToRange: not enough shared memory!!")
 		return 1;
 	}
 
@@ -82,7 +89,7 @@ public:
 		int memSize = ALLIGN_64(this->workingRange.length * this->pop->GetDim() * sizeof(vectorType));
 
 		if(this->workingRange.length * this->pop->GetDim() > MAX_THREADS_PER_BLOCK){
-			int threads = this->workingRange.length; 
+			int threads = std::min(512,this->workingRange.length); 
 			CUDA_CALL("Candidate move kernel", (MoveKernelCandidatePerThread<popContainer, vectorType, evalType>
 				<<<this->pop->GetPopsPerKernel(), threads, memSize>>>
 				(*(this->pop), this->workingRange, indices)))
