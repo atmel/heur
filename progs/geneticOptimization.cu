@@ -9,9 +9,15 @@ typedef char vType;
 typedef basicCandidateContainer<vType,int> RScandCont;
 typedef basicArchive<RScandCont,vType,int> RSbasArch;
 
-int main(void){
+int main(int argc, char* argv[]){
 
-	RScandCont *cc = new RScandCont(DIM,512,1024,POPS);
+	//decode cmd options: 1. popSize, 2. offsprsize 3. pops per kernel
+
+	if(argc != 4) return -1;
+	int pops = atoi(argv[3]), pSize = atoi(argv[1]), oSize = atoi(argv[2]);
+	
+
+	RScandCont *cc = new RScandCont(DIM,pSize,oSize,pops);
 	RSbasArch *ac = new RSbasArch(cc,1000);
 	//int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
 	//	hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
@@ -46,7 +52,7 @@ int main(void){
 	
 	t.Start();
 	t.Stop();
-	std::cout << "Time between calls to timer: " << t.PrintElapsedTime() << "\n";
+	//std::cout << "Time between calls to timer: " << t.PrintElapsedTime() << "\n";
   
 	//new population
 	basicPopulation<RScandCont,RSbasArch> *RSpop = new basicPopulation<RScandCont,RSbasArch>(cc,ac);
@@ -72,7 +78,7 @@ int main(void){
 							);
 							
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add(new sphericFunction<RScandCont>())//sudokuEvaluation<RScandCont>())
+							->Add(new sudokuEvaluation<RScandCont>())
 							);
 							
 				  
@@ -81,29 +87,30 @@ int main(void){
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
 						);
-	std::cout << "initializing\n";
+	//std::cout << "initializing\n";
 	t.Start();
 	  if(!RSpop->Init()){ 
 		std::cout << "init UNsuccessfull\n";
 		return 0;
 	  }
 	t.Stop();
-	std::cout << "---- Time of initialization: " << t.PrintElapsedTime() << "\n";
+	//std::cout << "---- Time of initialization: " << t.PrintElapsedTime() << "\n";
 	
 	t.Start();
-	for(int i=0;i<1000;i++){
+	for(int i=0;i<100;i++){
 	  //std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
 		std::cout << "Error during Next Generation\n";
 		return 0;
 	  }
 	}
+	cudaDeviceSynchronize();
 	t.Stop();
-	std::cout << "---- Time of run: " << t.PrintElapsedTime() << "\n";
+	std::cout << t.PrintElapsedTimeRaw() << "\n";
 	
-	cout << "Saving to file\n";
-	arch->SaveToFile();
-	cudaDeviceReset();
+	//cout << "Saving to file\n";
+	//arch->SaveToFile();
+	//cudaDeviceReset();
 
 return 0;
 }

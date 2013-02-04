@@ -24,7 +24,7 @@
 #else
 #endif
 
-#define H_DEBUG 1
+#define H_DEBUG 0
 
 //debug print
 #if H_DEBUG

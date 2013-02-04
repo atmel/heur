@@ -40,6 +40,12 @@ public:
 	  return std::string(s);
 	}
 	
+	std::string PrintElapsedTimeRaw(){
+	  char s[400];
+	  timespec t = GetElapsedTime();
+	  sprintf(s,"%ld, %ld", (long int)t.tv_sec, (long int)t.tv_nsec);
+	  return std::string(s);
+	}
 };
 
 
