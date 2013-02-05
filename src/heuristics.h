@@ -15,6 +15,7 @@
 #include "range.h"
 #include "rounding.h"
 #include "timer.h"
+#include "cooling.h"
 
 //build options
 
@@ -49,6 +50,9 @@
 #include "crossover.h"
 #include "mutation.h"
 #include "gaussianMutation.h"
+#include "cooledGaussianMutation.h"
+#include "reproductionCopy.h"
+#include "anneledMerging.h"
 
 //#include "merge.h"
 //#include "selection.h"

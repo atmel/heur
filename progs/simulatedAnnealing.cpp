@@ -19,7 +19,7 @@ int main(int argc, char* argv[]){
 	//cout << "popSize: " << pSize << "popsPerKernel: " << pops << "\n";
 	
 	timer t;
-	RScandCont *cc = new RScandCont(DIM,pSize,0,pops);
+	RScandCont *cc = new RScandCont(DIM,pSize,pSize,pops);
 	RSbasArch *ac = new RSbasArch(cc,100);
 	//int lo[]={-10000,-10000,-10000,-10000,-10000}, hi[] = {10001,10001,10001,10001,10001};
 	vType lo[]={
@@ -51,15 +51,21 @@ int main(int argc, char* argv[]){
 	//new population
 	basicPopulation<RScandCont,RSbasArch> *RSpop = new basicPopulation<RScandCont,RSbasArch>(cc,ac);
 	bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,vType,int> *arch = 
-		new bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,vType,int>("testPop");
+		new bestCandArchivedFitnessArchivationMethod<RScandCont,RSbasArch,vType,int>("testPopSA");
 
-	/*RSpop->AddInitialization(new popRangedMasterMethod<popContainer>()
-								->Add(new pseudouniformRandomInitialization<popContainer>)
-								->Add(new someEvaluation.......)
-							);*/
-	RSpop->AddExecution((new popRangedMasterMethod<RScandCont>())
+	RSpop->AddInitialization((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
 							->Add(new sudokuEvaluation<RScandCont>())
+							);
+	RSpop->AddExecution((new popToOffsprRangedMasterMethod<RScandCont>())
+							->Add(new copyReproduction<RScandCont>())
+							);
+	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
+							->Add(new cooledGaussianNoiseMutation<RScandCont,probabilisticRounding,classicCooling>(100))
+							->Add(new sudokuEvaluation<RScandCont>())
+							);
+	RSpop->AddExecution((new offsprToPopRangedMasterMethod<RScandCont>())
+							->Add(new annealedMerging<RScandCont,classicCooling>(100))
 							);
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)

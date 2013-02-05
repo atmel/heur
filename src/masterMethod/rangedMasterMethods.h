@@ -32,6 +32,40 @@ public:
 	}
 };
 
+//===============================================================================================
+
+/*
+	Master wrapper for reproduction-like methods (copy to offspr...)
+	workingRange serves as destination range
+*/
+template<class popContainer>
+class popToOffsprRangedMasterMethod : public masterMethod<popContainer>{
+public:
+	virtual range GetWorkingRange(){
+		return this->pop->GetOffsprRange();
+	}
+	virtual range GetFullRange(){
+		return this->pop->GetPopRange();
+	}
+};
+
+//===============================================================================================
+
+/*
+	Master wrapper for meriging-like methods (SA merge)
+	workingRange serves as destination range
+*/
+template<class popContainer>
+class offsprToPopRangedMasterMethod : public masterMethod<popContainer>{
+public:
+	virtual range GetWorkingRange(){
+		return this->pop->GetPopRange();
+	}
+	virtual range GetFullRange(){
+		return this->pop->GetOffsprRange();
+	}
+};
+
 template<class popContainer, class archContainer>
 class popRangedArchivedMasterMethod : public popRangedMasterMethod<popContainer>, public archiveProvider<archContainer>{
 protected:

@@ -37,6 +37,8 @@ __global__ void GaussianNoiseKernel(popContainer pop, curandState *state, range 
 			pop.RangeComponent(blockIdx.x,id,pop.GetDim()-1) += round::round(curand_normal2(&localState).x*sigma2, &localState);
 		}
 	}
+	//save state
+	state[stableId] = localState;
 }
 
 #endif

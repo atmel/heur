@@ -1,10 +1,10 @@
 #include "heuristics.h"
 #include <iostream>
 
-#define DIM 81
+#define DIM 5
 #define POPS 1
 
-typedef char vType;
+typedef int vType;
 
 typedef basicCandidateContainer<vType,int> RScandCont;
 typedef basicArchive<RScandCont,vType,int> RSbasArch;
@@ -19,9 +19,9 @@ int main(int argc, char* argv[]){
 
 	RScandCont *cc = new RScandCont(DIM,pSize,oSize,pops);
 	RSbasArch *ac = new RSbasArch(cc,1000);
-	//int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
-	//	hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
-	vType lo[]={
+	int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
+		hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
+	/*vType lo[]={
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1,
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
 	10,10,10, 10,10,10, 10,10,10,
 	10,10,10, 10,10,10, 10,10,10,
 	10,10,10, 10,10,10, 10,10,10
-	};
+	};*/
 	if(!cc->SetLimits(lo,hi)) return 0;
 	
 	timer t;
@@ -66,19 +66,19 @@ int main(int argc, char* argv[]){
 							->Add(new sphericFunction<RScandCont>())
 							);
 	//reproduction
-	RSpop->AddExecution((new reproductionMethod<RScandCont>(0.3))
+	RSpop->AddExecution((new reproductionMethod<RScandCont>(0.5))
 							->Add(new twoTournamentSelection<RScandCont>())
 							->Add(new onePointCrossover<RScandCont>())
 							);
 	//mutation
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add((new mutationWrapper<RScandCont>(0.3,0.9))
+							->Add((new mutationWrapper<RScandCont>(0.5,0.9))
 								->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<int> >(1))
               					->Add(new periodicPertubation<RScandCont>())) // we need to pertube only after mutation!
 							);
 							
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add(new sudokuEvaluation<RScandCont>())
+							->Add(new sphericFunction<RScandCont>())//sudokuEvaluation<RScandCont>())
 							);
 							
 				  
@@ -104,7 +104,9 @@ int main(int argc, char* argv[]){
 		return 0;
 	  }
 	}
+	#if USE_CUDA
 	cudaDeviceSynchronize();
+	#endif
 	t.Stop();
 	std::cout << t.PrintElapsedTimeRaw() << "\n";
 	
