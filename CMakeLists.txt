@@ -10,7 +10,7 @@ PROJECT(HeuristicsGPU)
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-#set(CXX_FLAGS "-frepo")
+set(CXX_FLAGS "-ffast-math")
 
 FIND_PACKAGE(CUDA)
 if(CUDA_FOUND)
@@ -23,7 +23,7 @@ include_directories( /usr/local/cuda/include )
 
 set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGs} -arch=sm_21 -keep --ptxas-options=-v)
 
-  #LINK_LIBRARIES("-L/usr/local/cuda/lib -lcutil")
+LINK_LIBRARIES("-lrt")  #-L/usr/local/cuda/lib -lcutil")
 
   #CUDA_ADD_EXECUTABLE(test main.cpp)
 
