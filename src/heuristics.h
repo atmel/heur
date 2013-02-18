@@ -52,7 +52,7 @@
 #include "gaussianMutation.h"
 #include "cooledGaussianMutation.h"
 #include "reproductionCopy.h"
-#include "anneledMerging.h"
+#include "annealedMerging.h"
 
 //#include "merge.h"
 //#include "selection.h"

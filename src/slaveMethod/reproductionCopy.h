@@ -21,8 +21,6 @@ __global__ void copyReproductionKernel(popContainer pop, range sourceRng, range 
 		}
 		__syncthreads();
 	}
-	//save state
-	state[stableId] = localState;
 }
 
 #endif
@@ -44,6 +42,7 @@ public:
 	}
 
 	int Perform(){
+	D("performing reproduction copy from: %d -- %d  to %d -- %d", this->fullRange.lo,this->fullRange.hi, this->workingRange.lo,this->workingRange.hi)
 	#if USE_CUDA
 		CUDA_CALL("copyReproduction kernel",( copyReproductionKernel<popContainer> <<<this->pop->GetPopsPerKernel(), threadCount>>>
 			(*(this->pop),this->fullRange, this->workingRange)));

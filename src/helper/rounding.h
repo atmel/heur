@@ -19,11 +19,11 @@ public:
 	#else
 	static inline vectorType round(double x){
 		double t = floor(x);
-		return (rand() > (vectorType)(RAND_MAX*(x-t))) ? t+1:t;
+		return (vectorType)(rand() > (RAND_MAX*(x-t))) ? t+1:t;
 	}
 	static inline vectorType round(float x){
 		float t = floor(x);
-		return (rand() > (vectorType)(RAND_MAX*(x-t))) ? t+1:t;
+		return (vectorType)(rand() > (RAND_MAX*(x-t))) ? t+1:t;
 	}
 	#endif
 };

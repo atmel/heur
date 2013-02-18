@@ -20,8 +20,9 @@ __global__ void SudokuEvalKernel(popContainer pop, range rng, int* squares){
 		if(id >= rng.hi) return; //complete
 
 		//load to shared
-		for(int i=0; i< pop.GetDim(); i++){
-			cand[i] = pop.RangeComponent(blockIdx.x,id,i);
+		for(int s=0; s< pop.GetDim(); s++){
+			//printf("%d ",s);
+			cand[s] = pop.RangeComponent(blockIdx.x,id,s);
 			//if(threadIdx.x == 0) printf("%d, ", cand[i]);
 		}
 		//if(threadIdx.x == 0) printf("\n");

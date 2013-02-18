@@ -61,7 +61,7 @@ class pseudouniformRandomInitialization : public slaveMethod<popContainer>, publ
 		D("starting for cycle")
 		for(int i= this->workingRange.lo; i < this->workingRange.hi; i++){
 			for(int j=0; j< this->pop->GetDim(); j++){
-				this->pop->RangeComponent(i,j) = rand()%(this->pop->GetUpperLimit(j) - this->pop->GetLowerLimit(j))
+				this->pop->RangeComponent(i,j) = ((float)rand()/RAND_MAX)*(this->pop->GetUpperLimit(j) - this->pop->GetLowerLimit(j))
 					+ this->pop->GetLowerLimit(j);
 			}
 		}

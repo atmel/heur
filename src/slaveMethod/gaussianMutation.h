@@ -16,6 +16,7 @@ __global__ void GaussianNoiseKernel(popContainer pop, curandState *state, range 
 	curandState localState;
 	float2 rnd;
 	localState = state[stableId]; //load generator state
+	
 
 	//proces candidates
 	for(int i=0; i < REQUIRED_RUNS(rng.length); i++, id += blockDim.x){
@@ -28,6 +29,7 @@ __global__ void GaussianNoiseKernel(popContainer pop, curandState *state, range 
 		#pragma unroll
 		for(int j=0; j < pop.GetDim()-1; j+=2){
 			rnd = curand_normal2(&localState);
+			//printf("%d, %d\n",round::round(rnd.x*sigma2, &localState),round::round(rnd.y*sigma2, &localState));
 			pop.RangeComponent(blockIdx.x,id,j) += round::round(rnd.x*sigma2, &localState);
 			pop.RangeComponent(blockIdx.x,id,j+1) += round::round(rnd.y*sigma2, &localState);
 		}

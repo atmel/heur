@@ -5,7 +5,7 @@
 
 #if USE_CUDA
 
-template<class popContainer>
+template<class popContainer, class cool>
 __global__ void annealedMergeKernel(popContainer pop, curandState *state, range sourceRng, range destRng, float T){
 	int id = threadIdx.x;
 	const int stableId = threadIdx .x + blockIdx .x * blockDim.x; //for accessing curand states
@@ -21,11 +21,15 @@ __global__ void annealedMergeKernel(popContainer pop, curandState *state, range 
 		}
 
 		//delta = new - old ... wRange is dest range (=old)
-		if(cool::accept(T, std::max(0,pop.RangeFitness(blockIdx.x,i+sourceRng.lo) - pop.RangeFitness(blockIdx.x,i+destRng.lo)), localState)){
+		int delta = max(0,pop.RangeFitness(blockIdx.x,id+sourceRng.lo) - pop.RangeFitness(blockIdx.x,id+destRng.lo));
+		//printf("delta %d \n",delta);
+		if(cool::accept(T ,delta, &localState)){
+			//printf("accepted, delata %d \n",delta);
 			for(int j=0; j < pop.GetDim(); j++){
 				//dest = source
-				pop.RangeComponent(blockIdx.x,i+destRng.lo,j) = pop.RangeComponent(blockIdx.x,i+sourceRng.lo,j);
+				pop.RangeComponent(blockIdx.x,id+destRng.lo,j) = pop.RangeComponent(blockIdx.x,id+sourceRng.lo,j);
 			}
+			pop.RangeFitness(blockIdx.x,id+destRng.lo) = pop.RangeFitness(blockIdx.x,id+sourceRng.lo);
 		}
 		__syncthreads();
 	}
@@ -55,20 +59,22 @@ public:
 	}
 
 	int Perform(){
+		D("performing merge from: %d -- %d  to %d -- %d", this->fullRange.lo,this->fullRange.hi, this->workingRange.lo,this->workingRange.hi)
 		float T = cool::cool(T0,gen);
 	#if USE_CUDA
-		CUDA_CALL("annealedMerging kernel",( annealedMergeKernel<popContainer> <<<this->pop->GetPopsPerKernel(), threadCount>>>
+		CUDA_CALL("annealedMerging kernel",( annealedMergeKernel<popContainer,cool> <<<this->pop->GetPopsPerKernel(), threadCount>>>
 			(*(this->pop),this->devStates,this->fullRange, this->workingRange,T)));
 	#else
 		int wlo = this->workingRange.lo, flo = this->fullRange.lo;
 
 		for(int i = 0; i++ < this->workingRange.length; i++){
 			//delta = new - old ... wRange is dest range (=old)
-			if(cool::accept(T, std::max(0,this->pop->RangeFitness(i+flo) - this->pop->RangeFitness(i+wlo)){
+			if(cool::accept(T, std::max(0,this->pop->RangeFitness(i+flo) - this->pop->RangeFitness(i+wlo)))){
 				for(int j=0; j < this->pop->GetDim(); j++){
 					//dest = source
 					this->pop->RangeComponent(i+wlo,j) = this->pop->RangeComponent(i+flo,j);
 				}
+				this->pop->RangeFitness(i+wlo) = this->pop->RangeFitness(i+flo);
 			}
 		}
 	#endif

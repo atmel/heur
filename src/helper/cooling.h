@@ -10,14 +10,15 @@ public:
 		return curand_uniform(st) < exp(-delta/T);
 	}
 	#else
-	static float cool(float T0, int step){
-		return T0/ln(step);
-	}
-
 	static bool accept(float T, float delta){
 		return (float)((int)(rand() & 0x7FFF) + 1)/(0x7FFF + 1) < exp(-delta/T);
 	}
 	#endif
+	
+	static float cool(float T0, int step){
+		return T0/log(step);
+	}
+	
 };
 
 #endif

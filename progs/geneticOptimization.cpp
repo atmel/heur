@@ -1,10 +1,10 @@
 #include "heuristics.h"
 #include <iostream>
 
-#define DIM 5
+#define DIM 81
 #define POPS 1
 
-typedef int vType;
+typedef char vType;
 
 typedef basicCandidateContainer<vType,int> RScandCont;
 typedef basicArchive<RScandCont,vType,int> RSbasArch;
@@ -19,9 +19,9 @@ int main(int argc, char* argv[]){
 
 	RScandCont *cc = new RScandCont(DIM,pSize,oSize,pops);
 	RSbasArch *ac = new RSbasArch(cc,1000);
-	int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
-		hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
-	/*vType lo[]={
+	//int lo[]={-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000,-10000}, 
+	//	hi[]={10001,10001,10001,10001,10001,10001,10001,10001,10001,10001};
+	vType lo[]={
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1,
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
 	10,10,10, 10,10,10, 10,10,10,
 	10,10,10, 10,10,10, 10,10,10,
 	10,10,10, 10,10,10, 10,10,10
-	};*/
+	};
 	if(!cc->SetLimits(lo,hi)) return 0;
 	
 	timer t;
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
 	RSpop->AddInitialization((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
 							//->Add(new periodicPertubation<RScandCont>())  //crossover cannot break limits
-							->Add(new sphericFunction<RScandCont>())
+							->Add(new sudokuEvaluation<RScandCont>()) //sphericFunction<RScandCont>())
 							);
 	//reproduction
 	RSpop->AddExecution((new reproductionMethod<RScandCont>(0.5))
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]){
 							);
 							
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add(new sphericFunction<RScandCont>())//sudokuEvaluation<RScandCont>())
+							->Add(new sudokuEvaluation<RScandCont>())
 							);
 							
 				  

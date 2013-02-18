@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
 	
 	timer t;
 	RScandCont *cc = new RScandCont(DIM,pSize,0,pops);
-	RSbasArch *ac = new RSbasArch(cc,100);
+	RSbasArch *ac = new RSbasArch(cc,10000);
 	//int lo[]={-10000,-10000,-10000,-10000,-10000}, hi[] = {10001,10001,10001,10001,10001};
 	vType lo[]={
 	1,1,1, 1,1,1, 1,1,1,
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
 	  return 0;
 	}
 	t.Start();
-	for(int i=0;i<100;i++){
+	for(int i=0;i<10000;i++){
 	  //std::cout << i << "-th generation\n";
 	  if(!RSpop->NextGeneration()){
 		std::cout << "Error during Next Generation\n";

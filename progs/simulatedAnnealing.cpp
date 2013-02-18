@@ -2,10 +2,10 @@
 #include <iostream>
 #include <cstdlib>
 
-#define DIM 81
+#define DIM 5
 #define POPS 1
 
-typedef char vType;
+typedef int vType;
 
 typedef basicCandidateContainer<vType,int> RScandCont;
 typedef basicArchive<RScandCont,vType,int> RSbasArch;
@@ -21,8 +21,8 @@ int main(int argc, char* argv[]){
 	timer t;
 	RScandCont *cc = new RScandCont(DIM,pSize,pSize,pops);
 	RSbasArch *ac = new RSbasArch(cc,100);
-	//int lo[]={-10000,-10000,-10000,-10000,-10000}, hi[] = {10001,10001,10001,10001,10001};
-	vType lo[]={
+	int lo[]={-10000,-10000,-10000,-10000,-10000}, hi[] = {10001,10001,10001,10001,10001};
+	/*vType lo[]={
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1,
 	1,1,1, 1,1,1, 1,1,1,
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]){
 	10,10,10, 10,10,10, 10,10,10,
 	10,10,10, 10,10,10, 10,10,10,
 	10,10,10, 10,10,10, 10,10,10
-	};
+	};*/
 	if(!cc->SetLimits(lo,hi)) return 0;
 	//new population
 	basicPopulation<RScandCont,RSbasArch> *RSpop = new basicPopulation<RScandCont,RSbasArch>(cc,ac);
@@ -55,17 +55,18 @@ int main(int argc, char* argv[]){
 
 	RSpop->AddInitialization((new popRangedMasterMethod<RScandCont>())
 							->Add(new pseudouniformRandomInitialization<RScandCont>())
-							->Add(new sudokuEvaluation<RScandCont>())
+							->Add(new sphericFunction<RScandCont>())//sudokuEvaluation<RScandCont>())
 							);
 	RSpop->AddExecution((new popToOffsprRangedMasterMethod<RScandCont>())
 							->Add(new copyReproduction<RScandCont>())
 							);
 	RSpop->AddExecution((new offsprRangedMasterMethod<RScandCont>())
-							->Add(new cooledGaussianNoiseMutation<RScandCont,probabilisticRounding,classicCooling>(100))
-							->Add(new sudokuEvaluation<RScandCont>())
+							->Add(new gaussianNoiseMutation<RScandCont,probabilisticRounding<vType> >(50)) //cooledGaussianNoiseMutation<RScandCont,probabilisticRounding<vType>,classicCooling>(400))
+							->Add(new periodicPertubation<RScandCont>())
+							->Add(new sphericFunction<RScandCont>())//sudokuEvaluation<RScandCont>())
 							);
 	RSpop->AddExecution((new offsprToPopRangedMasterMethod<RScandCont>())
-							->Add(new annealedMerging<RScandCont,classicCooling>(100))
+							->Add(new annealedMerging<RScandCont,classicCooling>(1000000))
 							);
 	RSpop->AddExecution((new popRangedArchivedMasterMethod<RScandCont,RSbasArch>())
 							->Add(arch)
